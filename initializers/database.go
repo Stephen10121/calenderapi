@@ -1,4 +1,4 @@
-package main
+package initializers
 
 import (
 	"gorm.io/driver/sqlite"
@@ -14,11 +14,6 @@ func ConnectDatabase() {
 
 	if err != nil {
 		panic("Failed to connect to database!")
-	}
-
-	err = database.AutoMigrate(&User{})
-	if err != nil {
-		return
 	}
 
 	DB = database
