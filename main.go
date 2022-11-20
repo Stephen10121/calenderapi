@@ -3,6 +3,7 @@ package main
 import (
 	"github.com/gin-gonic/gin"
 	"github.com/stephen10121/calenderapi/initializers"
+	"github.com/stephen10121/calenderapi/middleware"
 	"github.com/stephen10121/calenderapi/routes"
 )
 
@@ -12,14 +13,16 @@ import (
 func init() {
 	initializers.LoadEnvVariables()
 	initializers.ConnectDatabase()
+	initializers.SyncDatabase()
 }
 
 func main() {
 	println("gello12")
 	router := gin.Default()
 
-	router.GET("/login", routes.Login)
+	router.POST("/login", routes.Login)
 	router.POST("/signup", routes.Signup)
+	router.GET("/validate", middleware.RequireAuth, routes.Validate)
 
 	router.Run()
 }
