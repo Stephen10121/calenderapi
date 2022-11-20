@@ -157,6 +157,7 @@ func Signup(c *gin.Context) {
 func Validate(c *gin.Context) {
 	user2, _ := c.Get("user")
 	user := user2.(models.User)
+
 	c.JSON(http.StatusOK, gin.H{
 		"message": user,
 	})

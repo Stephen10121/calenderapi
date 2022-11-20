@@ -7,7 +7,6 @@ import (
 	"github.com/stephen10121/calenderapi/routes"
 )
 
-//println(context.Query("test"))                       // Getting parameters test
 //println(context.Request.Header.Get("Authorization")) // Getting header test
 
 func init() {
@@ -17,12 +16,27 @@ func init() {
 }
 
 func main() {
-	println("gello12")
 	router := gin.Default()
 
 	router.POST("/login", routes.Login)
 	router.POST("/signup", routes.Signup)
 	router.GET("/validate", middleware.RequireAuth, routes.Validate)
 
+	// Get groups for each user. The user will contain an array with the group id their in.
+	//
+
 	router.Run()
 }
+
+// The react native fetch function.
+//fetch('https://mywebsite.com/endpoint/', {
+//	method: 'POST',
+//	headers: {
+//	  Accept: 'application/json',
+//	  'Content-Type': 'application/json'
+//	},
+//	body: JSON.stringify({
+//	  firstParam: 'yourValue',
+//	  secondParam: 'yourOtherValue'
+//	})
+//  });
