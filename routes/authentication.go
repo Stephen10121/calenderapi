@@ -123,7 +123,7 @@ func Signup(c *gin.Context) {
 		return
 	}
 
-	user := models.User{Email: body.Email, Password: string(hash), Name: body.Name}
+	user := models.User{Email: body.Email, Password: string(hash), Name: body.Name, Groups: ""}
 	result := initializers.DB.Create(&user)
 
 	if result.Error != nil {

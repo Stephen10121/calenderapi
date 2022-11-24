@@ -12,9 +12,10 @@ type Job struct {
 	Date        string `json:"date"`
 	Time        string `json:"time"`
 	JobTitle    string `json:"jobTitle"`
-	Group       uint   `json:"group"`
+	Group       string `json:"group"`
 	Instuctions string `json:"instructions"`
 	GroupName   string `json:"groupName"`
-	Issuer      string `json:"issuer"`
+	Issuer      uint   `json:"issuer"`
+	IssuerName  string `json:"issuerName"`
 	Taken       bool   `json:"taken"`
 }

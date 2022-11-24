@@ -12,4 +12,5 @@ type Group struct {
 	Name         string `json:"name"`
 	OthersCanAdd bool   `json:"othersCanAdd"`
 	AboutGroup   string `json:"aboutGroup"`
+	Particapants string `json:"particapants"`
 }

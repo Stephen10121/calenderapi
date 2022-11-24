@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -13,7 +14,15 @@ import (
 )
 
 func RequireAuth(c *gin.Context) {
-	tokenString := c.Request.Header.Get("Authorization")
+	reqToken := c.Request.Header.Get("Authorization")
+	splitToken := strings.Split(reqToken, "Bearer ")
+
+	if len(splitToken) < 2 {
+		c.AbortWithStatus(http.StatusUnauthorized)
+		return
+	}
+
+	tokenString := splitToken[1]
 	if tokenString == "" {
 		c.AbortWithStatus(http.StatusUnauthorized)
 		return

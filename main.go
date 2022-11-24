@@ -23,6 +23,8 @@ func main() {
 	router.GET("/validate", middleware.RequireAuth, routes.Validate)
 	router.POST("/createGroup", middleware.RequireAuth, routes.CreateGroup)
 	router.POST("/groupIdTaken", middleware.RequireAuth, routes.GroupIdTaken)
+	router.POST("/addJob", middleware.RequireAuth, routes.AddJob)
+	router.POST("/groupInfo", middleware.RequireAuth, routes.GetGroupInfo)
 
 	// Get groups for each user. The user will contain an array with the group id their in.
 	//
