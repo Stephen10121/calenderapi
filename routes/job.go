@@ -60,7 +60,7 @@ func AddJob(c *gin.Context) {
 	}
 
 	if body.Notifications {
-		realtime.NotifyPeople(body.Group, "Job Added", "Added a new Job")
+		realtime.NotifyPeople(group.ID, "Job Added", "Added a new Job")
 	}
 
 	c.JSON(http.StatusOK, gin.H{

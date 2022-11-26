@@ -22,6 +22,7 @@ func main() {
 	router.POST("/signup", routes.Signup)
 	router.GET("/validate", middleware.RequireAuth, routes.Validate)
 	router.POST("/createGroup", middleware.RequireAuth, routes.CreateGroup)
+	router.POST("/joinGroup", middleware.RequireAuth, routes.JoinGroup)
 	router.POST("/groupIdTaken", middleware.RequireAuth, routes.GroupIdTaken)
 	router.POST("/addJob", middleware.RequireAuth, routes.AddJob)
 	router.POST("/groupInfo", middleware.RequireAuth, routes.GetGroupInfo)

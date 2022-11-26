@@ -1,6 +1,7 @@
 package routes
 
 import (
+	"fmt"
 	"net/http"
 	"strconv"
 	"strings"
@@ -8,6 +9,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/stephen10121/calenderapi/initializers"
 	"github.com/stephen10121/calenderapi/models"
+	"github.com/stephen10121/calenderapi/realtime"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -169,6 +171,82 @@ func GetGroupInfo(c *gin.Context) {
 
 	c.JSON(http.StatusBadRequest, gin.H{
 		"error": "User not in group.",
+	})
+	return
+}
+
+func JoinGroup(c *gin.Context) {
+	var body struct {
+		Id       string
+		Password string
+	}
+
+	if c.Bind(&body) != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "Failed to read body",
+		})
+		return
+	}
+
+	user2, _ := c.Get("user")
+	user := user2.(models.User)
+
+	if body.Id == "" || body.Password == "" {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "Failed to read body",
+		})
+		return
+	}
+
+	var group models.Group
+	initializers.DB.First(&group, "group_id = ?", body.Id)
+
+	if user.ID == 0 {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "Invalid Id or password",
+		})
+		return
+	}
+
+	err := bcrypt.CompareHashAndPassword([]byte(group.Password), []byte(body.Password))
+
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "Invalid Id or password",
+		})
+		return
+	}
+
+	usersCurrentPendingGroups := strings.Split(user.PendingGroups, ":")
+	fmt.Println(usersCurrentPendingGroups)
+	if contains(usersCurrentPendingGroups, strconv.FormatUint(uint64(group.ID), 10)) {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "Already joined or attempted to join",
+		})
+		return
+	}
+
+	usersCurrentGroups := strings.Split(user.Groups, ":")
+	fmt.Println(usersCurrentGroups)
+	if contains(usersCurrentGroups, strconv.FormatUint(uint64(group.ID), 10)) {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "Already joined or attempted to join",
+		})
+		return
+	}
+
+	groups := user.PendingGroups + ":" + strconv.FormatUint(uint64(group.ID), 10)
+	initializers.DB.Model(&models.User{}).Where("id = ?", user.ID).Update("pending_groups", groups)
+
+	particapants := group.PendingParticapants + ":" + strconv.FormatUint(uint64(user.ID), 10)
+	initializers.DB.Model(&models.Group{}).Where("id = ?", group.ID).Update("pending_particapants", particapants)
+
+	messageToOwner := user.Name + " wants to join your group."
+	realtime.NotifyGroupOwner(group.ID, "Pending New User", messageToOwner)
+
+	c.JSON(http.StatusOK, gin.H{
+		"error":   "none",
+		"message": "Success. Now wait for the group owner to accept the join request.",
 	})
 	return
 }
