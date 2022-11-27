@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/gin-gonic/gin"
+	"github.com/stephen10121/calenderapi/functions"
 	"github.com/stephen10121/calenderapi/initializers"
 	"github.com/stephen10121/calenderapi/models"
 	"github.com/stephen10121/calenderapi/realtime"
@@ -108,16 +109,6 @@ func CreateGroup(c *gin.Context) {
 	return
 }
 
-func contains(s []string, str string) bool {
-	for _, v := range s {
-		if v == str {
-			return true
-		}
-	}
-
-	return false
-}
-
 func GetGroupInfo(c *gin.Context) {
 	var body struct {
 		GroupId string `json:"groupId"`
@@ -149,7 +140,7 @@ func GetGroupInfo(c *gin.Context) {
 	}
 
 	users := strings.Split(group.Particapants, ":")
-	if contains(users, strconv.FormatUint(uint64(user.ID), 10)) {
+	if functions.Contains(users, strconv.FormatUint(uint64(user.ID), 10)) {
 		var groupUsers []string
 		for _, s := range users {
 			var user models.User
@@ -219,7 +210,7 @@ func JoinGroup(c *gin.Context) {
 
 	usersCurrentPendingGroups := strings.Split(user.PendingGroups, ":")
 	fmt.Println(usersCurrentPendingGroups)
-	if contains(usersCurrentPendingGroups, strconv.FormatUint(uint64(group.ID), 10)) {
+	if functions.Contains(usersCurrentPendingGroups, strconv.FormatUint(uint64(group.ID), 10)) {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"error": "Already joined or attempted to join",
 		})
@@ -228,7 +219,7 @@ func JoinGroup(c *gin.Context) {
 
 	usersCurrentGroups := strings.Split(user.Groups, ":")
 	fmt.Println(usersCurrentGroups)
-	if contains(usersCurrentGroups, strconv.FormatUint(uint64(group.ID), 10)) {
+	if functions.Contains(usersCurrentGroups, strconv.FormatUint(uint64(group.ID), 10)) {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"error": "Already joined or attempted to join",
 		})
