@@ -149,6 +149,30 @@ func GetGroupInfo(c *gin.Context) {
 				groupUsers = append(groupUsers, user.Name)
 			}
 		}
+
+		if user.ID == group.Owner {
+			usersPending := strings.Split(group.PendingParticapants, ":")
+			var groupUsersPending []string
+			for _, s := range usersPending {
+				var user models.User
+				initializers.DB.First(&user, "id = ?", s)
+				if user.ID != 0 {
+					groupUsersPending = append(groupUsersPending, user.Name)
+				}
+			}
+
+			c.JSON(http.StatusOK, gin.H{
+				"name":                 group.Name,
+				"owner":                group.OwnerName,
+				"created":              group.CreatedAt,
+				"group_id":             group.GroupID,
+				"about_group":          group.AboutGroup,
+				"particapants":         groupUsers,
+				"pending_particapants": groupUsersPending,
+			})
+			return
+		}
+
 		c.JSON(http.StatusOK, gin.H{
 			"name":         group.Name,
 			"owner":        group.OwnerName,
@@ -192,7 +216,7 @@ func JoinGroup(c *gin.Context) {
 	var group models.Group
 	initializers.DB.First(&group, "group_id = ?", body.Id)
 
-	if user.ID == 0 {
+	if group.ID == 0 {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"error": "Invalid Id or password",
 		})
@@ -238,6 +262,168 @@ func JoinGroup(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{
 		"error":   "none",
 		"message": "Success. Now wait for the group owner to accept the join request.",
+	})
+	return
+}
+
+type groupPendingData struct {
+	GroupId   string `json:"groupId"`
+	GroupName string `json:"groupName"`
+}
+
+type groupData struct {
+	GroupId      string `json:"groupId"`
+	GroupName    string `json:"groupName"`
+	OthersCanAdd bool   `json:"othersCanAdd"`
+}
+
+func GetMyGroups(c *gin.Context) {
+	user2, _ := c.Get("user")
+	user := user2.(models.User)
+
+	usersCurrentPendingGroups := strings.Split(user.PendingGroups, ":")
+	fmt.Println(usersCurrentPendingGroups)
+	var userCurrentPendingGroupsJson []groupPendingData
+	if len(usersCurrentPendingGroups) != 0 {
+		for i := 0; i < len(usersCurrentPendingGroups); i++ {
+			var group models.Group
+			u64, err := strconv.ParseUint(usersCurrentPendingGroups[i], 10, 16)
+			if err != nil {
+				fmt.Println(err)
+				continue
+			}
+			initializers.DB.First(&group, u64)
+
+			if group.ID == 0 {
+				continue
+			}
+			userCurrentPendingGroupsJson = append(userCurrentPendingGroupsJson, groupPendingData{GroupId: group.GroupID, GroupName: group.Name})
+		}
+	}
+	usersCurrentGroups := strings.Split(user.Groups, ":")
+	var usersCurrentGroupsJson []groupData
+
+	if len(usersCurrentGroups) != 0 {
+		for i := 0; i < len(usersCurrentGroups); i++ {
+			var group models.Group
+			u64, err := strconv.ParseUint(usersCurrentGroups[i], 10, 16)
+			if err != nil {
+				fmt.Println(err)
+				continue
+			}
+			initializers.DB.First(&group, u64)
+
+			if group.ID == 0 {
+				continue
+			}
+			usersCurrentGroupsJson = append(usersCurrentGroupsJson, groupData{GroupId: group.GroupID, GroupName: group.Name, OthersCanAdd: group.OthersCanAdd})
+		}
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"groups":        usersCurrentGroupsJson,
+		"pendingGroups": userCurrentPendingGroupsJson,
+	})
+	return
+}
+
+func AcceptParticapant(c *gin.Context) {
+	var body struct {
+		Id          string `json:"id"`
+		Particapant string `json:"particapant"`
+	}
+
+	if c.Bind(&body) != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "Failed to read body",
+		})
+		return
+	}
+
+	user2, _ := c.Get("user")
+	user := user2.(models.User)
+
+	if body.Id == "" || body.Particapant == "" {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "Failed to read body",
+		})
+		return
+	}
+
+	var group models.Group
+	initializers.DB.First(&group, "group_id = ?", body.Id)
+
+	if group.ID == 0 {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "Invalid Group",
+		})
+		return
+	}
+
+	if user.ID != group.Owner {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "Your not the owner.",
+		})
+		return
+	}
+
+	var userPart models.User
+	u64, err := strconv.ParseUint(body.Particapant, 10, 16)
+	if err != nil {
+		fmt.Println(err)
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "Invalid User Id",
+		})
+		return
+	}
+	initializers.DB.First(&userPart, u64)
+
+	if userPart.ID == 0 {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "Invalid User",
+		})
+		return
+	}
+
+	groupPendingUsers := strings.Split(group.PendingParticapants, ":")
+	if functions.Contains(groupPendingUsers, body.Particapant) != true {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "User not pending anymore.",
+		})
+		return
+	}
+
+	usersPendingGroups := strings.Split(userPart.PendingGroups, ":")
+	var pendingGroups string
+
+	if len(usersPendingGroups) != 0 {
+		for i := 0; i < len(usersPendingGroups); i++ {
+			if usersPendingGroups[i] != strconv.FormatUint(uint64(group.ID), 10) {
+				pendingGroups = pendingGroups + ":" + usersPendingGroups[i]
+			}
+		}
+	}
+	initializers.DB.Model(&models.User{}).Where("id = ?", userPart.ID).Update("pending_groups", pendingGroups)
+	groups := userPart.Groups + ":" + strconv.FormatUint(uint64(group.ID), 10)
+	initializers.DB.Model(&models.User{}).Where("id = ?", userPart.ID).Update("groups", groups)
+
+	groupPendingParticapants := strings.Split(group.PendingParticapants, ":")
+	var pendingParticapants string
+
+	if len(groupPendingParticapants) != 0 {
+		for i := 0; i < len(groupPendingParticapants); i++ {
+			if groupPendingParticapants[i] != strconv.FormatUint(uint64(userPart.ID), 10) {
+				pendingParticapants = pendingParticapants + ":" + groupPendingParticapants[i]
+			}
+		}
+	}
+	initializers.DB.Model(&models.Group{}).Where("id = ?", group.ID).Update("pending_particapants", pendingParticapants)
+	users := group.Particapants + ":" + strconv.FormatUint(uint64(userPart.ID), 10)
+	initializers.DB.Model(&models.Group{}).Where("id = ?", group.ID).Update("particapants", users)
+
+	c.JSON(http.StatusOK, gin.H{
+		"error":   "none",
+		"message": "Success.",
 	})
 	return
 }

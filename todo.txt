@@ -1,0 +1,7 @@
+1 user logs in.
+- Fetch the groups user is currently in. API Endpoint: /myGroups.
+- For each group in groups fetched, get the jobs. API Endpoint: /getJobs
+
+
+User clicks a group.
+- Fetch the group info. API Endpoint: /groupInfo

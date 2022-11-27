@@ -7,8 +7,6 @@ import (
 	"github.com/stephen10121/calenderapi/routes"
 )
 
-//println(context.Request.Header.Get("Authorization")) // Getting header test
-
 func init() {
 	initializers.LoadEnvVariables()
 	initializers.ConnectDatabase()
@@ -27,12 +25,11 @@ func main() {
 	router.POST("/joinGroup", middleware.RequireAuth, routes.JoinGroup)
 	router.POST("/groupIdTaken", middleware.RequireAuth, routes.GroupIdTaken)
 	router.POST("/groupInfo", middleware.RequireAuth, routes.GetGroupInfo)
+	router.GET("/myGroups", middleware.RequireAuth, routes.GetMyGroups)
+	router.POST("/acceptUser", middleware.RequireAuth, routes.AcceptParticapant)
 	// Job Part
 	router.POST("/addJob", middleware.RequireAuth, routes.AddJob)
 	router.POST("/getJobs", middleware.RequireAuth, routes.GetJobs)
-
-	// Get groups for each user. The user will contain an array with the group id their in.
-	//
 
 	router.Run()
 }
