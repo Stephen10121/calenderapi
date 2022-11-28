@@ -233,7 +233,6 @@ func JoinGroup(c *gin.Context) {
 	}
 
 	usersCurrentPendingGroups := strings.Split(user.PendingGroups, ":")
-	fmt.Println(usersCurrentPendingGroups)
 	if functions.Contains(usersCurrentPendingGroups, strconv.FormatUint(uint64(group.ID), 10)) {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"error": "Already joined or attempted to join",
@@ -242,7 +241,6 @@ func JoinGroup(c *gin.Context) {
 	}
 
 	usersCurrentGroups := strings.Split(user.Groups, ":")
-	fmt.Println(usersCurrentGroups)
 	if functions.Contains(usersCurrentGroups, strconv.FormatUint(uint64(group.ID), 10)) {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"error": "Already joined or attempted to join",
@@ -282,7 +280,6 @@ func GetMyGroups(c *gin.Context) {
 	user := user2.(models.User)
 
 	usersCurrentPendingGroups := strings.Split(user.PendingGroups, ":")
-	fmt.Println(usersCurrentPendingGroups)
 	var userCurrentPendingGroupsJson []groupPendingData
 	if len(usersCurrentPendingGroups) != 0 {
 		for i := 0; i < len(usersCurrentPendingGroups); i++ {

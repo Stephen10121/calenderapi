@@ -1,6 +1,9 @@
 package main
 
 import (
+	"fmt"
+	"os"
+
 	"github.com/gin-gonic/gin"
 	"github.com/stephen10121/calenderapi/initializers"
 	"github.com/stephen10121/calenderapi/middleware"
@@ -14,6 +17,7 @@ func init() {
 }
 
 func main() {
+	gin.SetMode(gin.ReleaseMode)
 	router := gin.Default()
 
 	// Authentication
@@ -30,7 +34,7 @@ func main() {
 	// Job Part
 	router.POST("/addJob", middleware.RequireAuth, routes.AddJob)
 	router.POST("/getJobs", middleware.RequireAuth, routes.GetJobs)
-
+	fmt.Println("Running Server on ", os.Getenv("PORT"))
 	router.Run()
 }
 
