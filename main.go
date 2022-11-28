@@ -17,9 +17,9 @@ func init() {
 }
 
 func main() {
-	gin.SetMode(gin.ReleaseMode)
+	// gin.SetMode(gin.ReleaseMode) // Uncomment this in release
 	router := gin.Default()
-
+	router.Use(middleware.CORSMiddleware())
 	// Authentication
 	router.POST("/login", routes.Login)
 	router.POST("/signup", routes.Signup)

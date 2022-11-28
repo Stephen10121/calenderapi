@@ -1,34 +1,40 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import './App.css'
+import './App.css';
+import { getCookie } from "../functions/cookie";
+import { POST_SERVER } from "../functions/variables";
+import { useState } from 'react';
 
-function App() {
-  const [count, setCount] = useState(0)
-
-  return (
-    <div className="App">
-      <div>
-        <a href="https://vitejs.dev" target="_blank">
-          <img src="/vite.svg" className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://reactjs.org" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </div>
-  )
+async function fetchGroups(token: string) {
+  try {
+    const groups = await fetch(`${POST_SERVER}/myGroups`, {
+      method: "GET",
+      headers: {
+        "Authorization": `Bearer ${token}`
+      },
+      credentials: "omit"
+    })
+    console.log(groups);
+  } catch (err) {
+    console.error(err);
+    return false;
+  }
 }
 
-export default App
+function App() {
+  const cookie = getCookie("G_CAL");
+  const [loggedIn, setLoggedIn] = useState(cookie ? true : false);
+
+  if (cookie) {
+    fetchGroups(cookie).then((data) => {
+      if (!data) {
+        setLoggedIn(false);
+      }
+    });
+  }
+  return (
+    <div className="App">
+      {loggedIn ? "logged in" : "not logged in"}
+    </div>
+  );
+}
+
+export default App;
