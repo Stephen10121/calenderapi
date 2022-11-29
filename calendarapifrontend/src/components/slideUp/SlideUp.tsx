@@ -17,7 +17,9 @@ export default function SlideUp({ header, children, close }: { header: string, c
               setTimeout(() => {
                 close()
               }, 250);
-            }}>close</button>
+            }}>
+              <img src="/closecircle.png" alt="Close" />
+            </button>
         </div>
         <div>
             {children}

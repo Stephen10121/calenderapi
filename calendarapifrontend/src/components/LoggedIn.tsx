@@ -11,8 +11,6 @@ export default function LoggedIn({ name, email, token, logout }: { name: string,
     const [groups, setGroups] = useState<Array<GroupsType>>([]);
     const [pendingGroups, setPendingGroups] = useState<Array<PendingGroupsType>>([]);
     const [selected, setSelected] = useState<Locations>("home");
-    const [width, setWidth] = useState(100);
-    const [marginLeftSet, setMarginLeftSet] = useState(0);
 
     useEffect(() => {
         fetchGroups(token).then((data) => {
@@ -26,27 +24,14 @@ export default function LoggedIn({ name, email, token, logout }: { name: string,
     }, []);
 
     useEffect(() => {
-        if (selected === "home") {
-            setWidth(100);
-            setMarginLeftSet(0);
-        }
-        else if (selected === "calendar") {
-            setWidth(200);
-            setMarginLeftSet(100);
-        }
-        else if (selected === "groups") {
-            setWidth(300);
-            setMarginLeftSet(200);
-        }
-        else if (selected === "addJob") {
-            setWidth(400);
-            setMarginLeftSet(300);
-        }
+        const doc = document.querySelector("#scroll");
+        if (!doc) return;
+        doc.scrollLeft = doc.getBoundingClientRect().width * (selected==="addJob"?3:selected==="groups"?2:selected==="calendar"?1:0);
     }, [selected]);
-
+    
   return (
     <div className={styles.main}>
-        <div className={styles.sections} style={{ width: `${width}vw`, marginLeft: `-${marginLeftSet}vw` }}>
+        <div className={styles.sections} id="scroll">
             <HomeSection name={name}/>
             <section>
                 <div className="info">
