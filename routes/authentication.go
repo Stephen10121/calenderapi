@@ -159,6 +159,7 @@ func Validate(c *gin.Context) {
 	user := user2.(models.User)
 
 	c.JSON(http.StatusOK, gin.H{
-		"message": user,
+		"email": user.Email,
+		"name":  user.Name,
 	})
 }

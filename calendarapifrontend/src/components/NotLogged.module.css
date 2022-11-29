@@ -1,0 +1,51 @@
+.welcome {
+    font-size: 24pt;
+}
+
+.notLogged {
+    width: 100vw;
+    height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+}
+
+.notLogged form {
+    width: 100%;
+    height: fit-content;
+    padding: 30px;
+}
+
+.input {
+    background: none;
+    border: 2px solid black;
+    border-radius: 10px;
+    height: 40px;
+    width: 100%;
+    color: black;
+    font-size: 12pt;
+    font-weight: 700;
+    letter-spacing: 0.5pt;
+    padding: 0 5px;
+}
+
+.input::placeholder {
+    color: black;
+    font-size: 12pt;
+    font-weight: 600;
+    letter-spacing: 0.5pt;
+}
+
+.login {
+    background: #3A9FE9;
+    border-radius: 10px;
+    height: 40px;
+    border: none;
+    width: 100%;
+    color: white;
+    padding: 0 5px;
+    font-size: 12pt;
+    font-weight: 600;
+    letter-spacing: 0.5pt;
+}
