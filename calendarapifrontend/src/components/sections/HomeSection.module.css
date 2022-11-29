@@ -1,0 +1,37 @@
+.home {
+    min-width: 100vw;
+    min-height: calc(100vw - 70px);
+    background-color: #DFDFDF;
+}
+
+.greeting {
+    width: 100vw;
+    height: 200px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+}
+
+.welcome {
+    font-size: 30pt;
+    font-weight: 900;
+    color: #000000;
+}
+
+.name {
+    font-size: 20pt;
+    font-weight: 900;
+    color: #3A9FE9;
+}
+
+.comingUp {
+    width: 100vw;
+    padding: 0 23px;
+}
+
+.title {
+    font-size: 18pt;
+    font-weight: bold;
+    color: #000000;
+}

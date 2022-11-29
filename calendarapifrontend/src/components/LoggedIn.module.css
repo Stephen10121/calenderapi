@@ -1,0 +1,18 @@
+.main {
+    width: 100vw;
+    height: 100vh;
+    display: grid;
+    grid-template-rows: auto 70px;
+}
+
+.sections {
+    height: calc(100vh - 70px);
+    display: flex;
+    overflow-x: hidden;
+}
+
+.sections section {
+    min-width: 100vw;
+    max-width: 100vw;
+    height: calc(100vw - 70px);
+}

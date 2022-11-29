@@ -9,17 +9,21 @@
     align-items: center;
     justify-content: center;
     flex-direction: column;
+    background-color: #dfdfdf;
 }
 
 .notLogged form {
     width: 100%;
     height: fit-content;
     padding: 30px;
+    display: flex;
+    flex-direction: column;
+    gap: 25px;
 }
 
 .input {
     background: none;
-    border: 2px solid black;
+    border: 1px solid black;
     border-radius: 10px;
     height: 40px;
     width: 100%;
