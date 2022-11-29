@@ -272,6 +272,7 @@ type groupPendingData struct {
 type groupData struct {
 	GroupId      string `json:"groupId"`
 	GroupName    string `json:"groupName"`
+	GroupOwner   string `json:"groupOwner"`
 	OthersCanAdd bool   `json:"othersCanAdd"`
 }
 
@@ -313,7 +314,7 @@ func GetMyGroups(c *gin.Context) {
 			if group.ID == 0 {
 				continue
 			}
-			usersCurrentGroupsJson = append(usersCurrentGroupsJson, groupData{GroupId: group.GroupID, GroupName: group.Name, OthersCanAdd: group.OthersCanAdd})
+			usersCurrentGroupsJson = append(usersCurrentGroupsJson, groupData{GroupId: group.GroupID, GroupName: group.Name, OthersCanAdd: group.OthersCanAdd, GroupOwner: group.OwnerName})
 		}
 	}
 

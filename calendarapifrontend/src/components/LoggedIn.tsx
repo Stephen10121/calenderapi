@@ -5,6 +5,7 @@ import PendingGroups, { PendingGroupsType } from "./PendingGroups";
 import styles from "./LoggedIn.module.css";
 import Navigation, { Locations } from "./Navigation";
 import HomeSection from "./sections/HomeSection";
+import GroupSection from "./sections/GroupSection";
 
 export default function LoggedIn({ name, email, token, logout }: { name: string, email: string, token: string, logout: () => void }) {
     const [groups, setGroups] = useState<Array<GroupsType>>([]);
@@ -59,7 +60,7 @@ export default function LoggedIn({ name, email, token, logout }: { name: string,
                 {selected}
                 <button className="logout" onClick={logout}>Logout</button>
             </section>
-            <section>section 3</section>
+            <GroupSection groups={groups} pendingGroups={pendingGroups}/>
             <section>section 4</section>
             <section>section 5</section>
         </div>

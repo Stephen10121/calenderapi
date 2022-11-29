@@ -1,0 +1,21 @@
+.main {
+    width: 100vw;
+    height: calc(100vh - 20px);
+    background-color: #F3F3F3;
+    border-top-left-radius: 35px;
+    border-top-right-radius: 35px;
+    position: fixed;
+    left: 0;
+    z-index: 100;
+    border: 2px solid black;
+    transition: top 0.25s linear;
+}
+
+.header {
+    width: 100vw;
+    height: 50px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 32px 0;
+}

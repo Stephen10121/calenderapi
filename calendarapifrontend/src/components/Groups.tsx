@@ -1,6 +1,7 @@
 export type GroupsType = {
     groupId: string;
     groupName: string;
+    groupOwner: string;
     othersCanAdd: boolean;
 }
 
