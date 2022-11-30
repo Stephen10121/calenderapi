@@ -8,17 +8,10 @@
 .sections {
     height: calc(100vh - 70px);
     display: flex;
-    overflow-x: auto;
-    overflow-y: hidden;
-    -ms-overflow-style: none;  /* IE and Edge */
-    scrollbar-width: none;  /* Firefox */
+    overflow: hidden;
     width: 100vw;
     scroll-behavior: smooth;
 }
-
-.sections::-webkit-scrollbar {
-    display: none;
-  }
 
 .sections section {
     min-width: 100vw;

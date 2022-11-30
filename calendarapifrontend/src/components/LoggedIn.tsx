@@ -39,13 +39,13 @@ export default function LoggedIn({ name, email, token, logout }: { name: string,
                     <h2>Contacts: {email}</h2>
                 </div>
                 <div className="group-section">
-                    <Groups groups={groups}/>
+                    <Groups groups={groups} />
                     <PendingGroups groups={pendingGroups}/>
                 </div>
                 {selected}
                 <button className="logout" onClick={logout}>Logout</button>
             </section>
-            <GroupSection groups={groups} pendingGroups={pendingGroups}/>
+            <GroupSection groups={groups} pendingGroups={pendingGroups} token={token}/>
             <section>section 4</section>
             <section>section 5</section>
         </div>

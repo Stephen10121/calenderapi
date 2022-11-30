@@ -162,13 +162,15 @@ func GetGroupInfo(c *gin.Context) {
 			}
 
 			c.JSON(http.StatusOK, gin.H{
-				"name":                 group.Name,
-				"owner":                group.OwnerName,
-				"created":              group.CreatedAt,
-				"group_id":             group.GroupID,
-				"about_group":          group.AboutGroup,
-				"particapants":         groupUsers,
-				"pending_particapants": groupUsersPending,
+				"name":         group.Name,
+				"owner":        group.OwnerName,
+				"created":      group.CreatedAt,
+				"group_id":     group.GroupID,
+				"about_group":  group.AboutGroup,
+				"particapants": groupUsers,
+				"yourowner": gin.H{
+					"pending_particapants": groupUsersPending,
+				},
 			})
 			return
 		}
@@ -180,6 +182,7 @@ func GetGroupInfo(c *gin.Context) {
 			"group_id":     group.GroupID,
 			"about_group":  group.AboutGroup,
 			"particapants": groupUsers,
+			"yourowner":    false,
 		})
 		return
 	}

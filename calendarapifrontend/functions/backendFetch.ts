@@ -3,29 +3,46 @@ import { PendingGroupsType } from "../src/components/PendingGroups";
 import { POST_SERVER } from "./variables";
 
 export interface FetchGroupsResponse {
-    error?: string
+    error?: string;
     data?: {
-        groups: GroupsType[]
-        pendingGroups: PendingGroupsType[]
-    }
+        groups: GroupsType[];
+        pendingGroups: PendingGroupsType[];
+    };
 }
 
 export interface LoginResponse {
-    error: string
-    message?: string
+    error: string;
+    message?: string;
     data?: {
-        email: string
-        name: string
-        token: string
-    }
+        email: string;
+        name: string;
+        token: string;
+    };
 }
 
 export interface ValidateResponse {
-    error: boolean
+    error: boolean;
     data?: {
-        email: string
-        name: string
+        email: string;
+        name: string;
+    };
+}
+
+export interface GroupInfoData {
+    about_group: string;
+    created: string;
+    group_id: string;
+    name: string;
+    owner: string;
+    particapants: string[];
+    yourowner?: {
+      pending_particapants: string[];
     }
+}
+
+export interface GroupInfoResponse {
+  error: string;
+  data?: GroupInfoData;
 }
 
 export async function fetchGroups(token: string): Promise<FetchGroupsResponse> {
@@ -89,5 +106,29 @@ export async function login(email: string, password: string): Promise<LoginRespo
     } catch (err) {
       console.error(err);
       return {error: "Error Logging in."};
+    }
+}
+
+export async function groupInfo(groupId: string, token: string): Promise<GroupInfoResponse> {
+    try {
+      const groups = await fetch(`${POST_SERVER}/groupInfo`, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${token}`
+        },
+        credentials: "omit",
+        body: JSON.stringify({
+            "groupId": groupId,
+        })
+      })
+      const groupsJson = await groups.json();
+      if (groupsJson.error) {
+        return {error: groupsJson.error}
+      }
+      return {error: "", data: groupsJson}
+    } catch (err) {
+      console.error(err);
+      return {error: "Error Getting Group Data."};
     }
 }
