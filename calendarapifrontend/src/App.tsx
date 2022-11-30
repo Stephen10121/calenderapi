@@ -10,10 +10,12 @@ export default function App() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [token, setToken] = useState("");
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     const cookie = getCookie("G_CAL");
     if (cookie) {
+      setLoading(true);
       validate(cookie).then((data) => {
         if (data.error || !data.data) {
           return;
@@ -21,6 +23,7 @@ export default function App() {
         setName(data.data.name);
         setEmail(data.data.email);
         setToken(cookie);
+        setLoading(false);
         setLoggedIn(true);
       });
     }
@@ -38,11 +41,18 @@ export default function App() {
     setName(name);
     setEmail(email);
     setToken(token);
+    setLoading(false);
     setLoggedIn(true);
+  }
+
+  if (loading) {
+    return(<div className="cloader">
+      <span className='loader'></span>
+    </div>);
   }
 
   if (loggedIn) {
     return <LoggedIn name={name} email={email} token={token} logout={logout}/>
   }
-  return <NotLogged loggedIn={isLoggedIn}/>;
+  return <NotLogged loggedIn={isLoggedIn} />;
 }
