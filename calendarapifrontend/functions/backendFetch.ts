@@ -28,15 +28,21 @@ export interface ValidateResponse {
     };
 }
 
+export interface Particapant {
+  name: string;
+  id: number;
+}
+
 export interface GroupInfoData {
     about_group: string;
     created: string;
     group_id: string;
     name: string;
     owner: string;
-    particapants: string[];
+    particapants: Particapant[];
     yourowner?: {
-      pending_particapants: string[];
+      ownerId: number;
+      pending_particapants: Particapant[];
     }
 }
 

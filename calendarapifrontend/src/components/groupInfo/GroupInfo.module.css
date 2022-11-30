@@ -56,3 +56,30 @@
     align-items: center;
     justify-content: center;
 }
+
+.particapantListItem {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.particapantListItem button {
+    border-radius: 2px;
+    background-color: #EE3F3F;
+    color: white;
+    font-size: 10px;
+    font-weight: 700;
+    border: none;
+    padding: 5px;
+    letter-spacing: 1px;
+}
+
+.accept {
+    display: flex;
+    gap: 5px;
+}
+
+.accept button:first-child {
+    background-color: #3A9FE9;
+}

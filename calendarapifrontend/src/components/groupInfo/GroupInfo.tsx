@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { groupInfo } from "../../../functions/backendFetch";
+import { groupInfo, Particapant } from "../../../functions/backendFetch";
 import styles from "./GroupInfo.module.css";
 
 export default function GroupInfo({ groupId, token, othersCanAdd }: { groupId: string, token: string, othersCanAdd: boolean }) {
@@ -24,13 +24,23 @@ export default function GroupInfo({ groupId, token, othersCanAdd }: { groupId: s
                         <li>
                             <span>Particapants: </span>
                             <ul className={styles.users}>
-                                {data.data.particapants.map((particapant: string, index: number) => <li key={`${particapant}${index}`}>{particapant}</li>)}
+                                {data.data.particapants.map((particapant: Particapant) => <li key={particapant.id}>
+                                    <div className={styles.particapantListItem} >
+                                        <p>{particapant.name}</p>
+                                        {data.data?.yourowner && data.data.yourowner.ownerId !== particapant.id ? <button>Kick Out</button>:null}
+                                    </div>
+                                </li>)}
                             </ul>
                         </li>
                         {data.data.yourowner && data.data.yourowner.pending_particapants ? <li>
                             <span>Pending Particapants: </span>
                             <ul className={styles.users}>
-                                {data.data.yourowner.pending_particapants.map((particapant, index) => <li key={`${particapant}${index}`}>{particapant}</li>)}
+                                {data.data.yourowner.pending_particapants.map((particapant: Particapant) => <li key={particapant.id}>
+                                    <div className={styles.particapantListItem} >
+                                        <p>{particapant.name}</p>
+                                        {data.data?.yourowner ? <div className={styles.accept}><button>Accept</button><button>Decline</button></div>:null}
+                                    </div>
+                                </li>)}
                             </ul>
                         </li> : null}
                         <li><span>Date Created: </span>{newDate}</li>

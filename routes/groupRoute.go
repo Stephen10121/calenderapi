@@ -109,6 +109,11 @@ func CreateGroup(c *gin.Context) {
 	return
 }
 
+type PartiacapantSend struct {
+	Name string `json:"name"`
+	Id   uint   `json:"id"`
+}
+
 func GetGroupInfo(c *gin.Context) {
 	var body struct {
 		GroupId string `json:"groupId"`
@@ -141,23 +146,23 @@ func GetGroupInfo(c *gin.Context) {
 
 	users := strings.Split(group.Particapants, ":")
 	if functions.Contains(users, strconv.FormatUint(uint64(user.ID), 10)) {
-		var groupUsers []string
+		var groupUsers []PartiacapantSend
 		for _, s := range users {
 			var user models.User
 			initializers.DB.First(&user, "id = ?", s)
 			if user.ID != 0 {
-				groupUsers = append(groupUsers, user.Name)
+				groupUsers = append(groupUsers, PartiacapantSend{Name: user.Name, Id: user.ID})
 			}
 		}
 
 		if user.ID == group.Owner {
 			usersPending := strings.Split(group.PendingParticapants, ":")
-			var groupUsersPending []string
+			var groupUsersPending []PartiacapantSend
 			for _, s := range usersPending {
 				var user models.User
 				initializers.DB.First(&user, "id = ?", s)
 				if user.ID != 0 {
-					groupUsersPending = append(groupUsersPending, user.Name)
+					groupUsersPending = append(groupUsersPending, PartiacapantSend{Name: user.Name, Id: user.ID})
 				}
 			}
 
@@ -169,6 +174,7 @@ func GetGroupInfo(c *gin.Context) {
 				"about_group":  group.AboutGroup,
 				"particapants": groupUsers,
 				"yourowner": gin.H{
+					"ownerId":              group.Owner,
 					"pending_particapants": groupUsersPending,
 				},
 			})
