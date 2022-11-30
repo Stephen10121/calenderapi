@@ -3,7 +3,7 @@ import { groupInfo, Particapant } from "../../../functions/backendFetch";
 import styles from "./GroupInfo.module.css";
 
 export default function GroupInfo({ groupId, token, othersCanAdd }: { groupId: string, token: string, othersCanAdd: boolean }) {
-    const [data, setData] = useState<any>(null);
+    const [data, setData] = useState<any>(<div className={styles.cloader}><span className={styles.loader}></span></div>);
     const daytostring = ["N/A", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
     const montostring = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
     useEffect(() => {
@@ -26,7 +26,7 @@ export default function GroupInfo({ groupId, token, othersCanAdd }: { groupId: s
                             <ul className={styles.users}>
                                 {data.data.particapants.map((particapant: Particapant) => <li key={particapant.id}>
                                     <div className={styles.particapantListItem} >
-                                        <p>{particapant.name}</p>
+                                        <p>{particapant.name}{particapant.id === data.data?.yourowner?.ownerId? " (you)":null}</p>
                                         {data.data?.yourowner && data.data.yourowner.ownerId !== particapant.id ? <button>Kick Out</button>:null}
                                     </div>
                                 </li>)}
