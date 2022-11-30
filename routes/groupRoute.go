@@ -267,7 +267,6 @@ func JoinGroup(c *gin.Context) {
 	realtime.NotifyGroupOwner(group.ID, "Pending New User", messageToOwner)
 
 	c.JSON(http.StatusOK, gin.H{
-		"error":   "none",
 		"message": "Success. Now wait for the group owner to accept the join request.",
 	})
 	return
@@ -429,7 +428,6 @@ func AcceptParticapant(c *gin.Context) {
 	initializers.DB.Model(&models.Group{}).Where("id = ?", group.ID).Update("particapants", users)
 
 	c.JSON(http.StatusOK, gin.H{
-		"error":   "none",
 		"message": "Success.",
 	})
 	return

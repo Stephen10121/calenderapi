@@ -10,47 +10,6 @@ export interface FetchGroupsResponse {
     };
 }
 
-export interface LoginResponse {
-    error: string;
-    message?: string;
-    data?: {
-        email: string;
-        name: string;
-        token: string;
-    };
-}
-
-export interface ValidateResponse {
-    error: boolean;
-    data?: {
-        email: string;
-        name: string;
-    };
-}
-
-export interface Particapant {
-  name: string;
-  id: number;
-}
-
-export interface GroupInfoData {
-    about_group: string;
-    created: string;
-    group_id: string;
-    name: string;
-    owner: string;
-    particapants: Particapant[];
-    yourowner?: {
-      ownerId: number;
-      pending_particapants: Particapant[];
-    }
-}
-
-export interface GroupInfoResponse {
-  error: string;
-  data?: GroupInfoData;
-}
-
 export async function fetchGroups(token: string): Promise<FetchGroupsResponse> {
     try {
       const groups = await fetch(`${POST_SERVER}/myGroups`, {
@@ -71,6 +30,14 @@ export async function fetchGroups(token: string): Promise<FetchGroupsResponse> {
     }
 }
 
+export interface ValidateResponse {
+  error: boolean;
+  data?: {
+      email: string;
+      name: string;
+  };
+}
+
 export async function validate(token: string): Promise<ValidateResponse> {
     try {
       const groups = await fetch(`${POST_SERVER}/validate`, {
@@ -89,6 +56,16 @@ export async function validate(token: string): Promise<ValidateResponse> {
       console.error(err);
       return {error: true};
     }
+}
+
+export interface LoginResponse {
+  error: string;
+  message?: string;
+  data?: {
+      email: string;
+      name: string;
+      token: string;
+  };
 }
 
 export async function login(email: string, password: string): Promise<LoginResponse> {
@@ -115,6 +92,29 @@ export async function login(email: string, password: string): Promise<LoginRespo
     }
 }
 
+export interface Particapant {
+  name: string;
+  id: number;
+}
+
+export interface GroupInfoData {
+  about_group: string;
+  created: string;
+  group_id: string;
+  name: string;
+  owner: string;
+  particapants: Particapant[];
+  yourowner?: {
+    ownerId: number;
+    pending_particapants: Particapant[];
+  }
+}
+
+export interface GroupInfoResponse {
+error: string;
+data?: GroupInfoData;
+}
+
 export async function groupInfo(groupId: string, token: string): Promise<GroupInfoResponse> {
     try {
       const groups = await fetch(`${POST_SERVER}/groupInfo`, {
@@ -136,5 +136,35 @@ export async function groupInfo(groupId: string, token: string): Promise<GroupIn
     } catch (err) {
       console.error(err);
       return {error: "Error Getting Group Data."};
+    }
+}
+
+interface AcceptParticapantResponse {
+  message?: string;
+  error?: string;
+}
+
+export async function acceptParticapant(groupId: string, token: string, particapant: string): Promise<AcceptParticapantResponse> {
+    try {
+      const groups = await fetch(`${POST_SERVER}/acceptUser`, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${token}`
+        },
+        credentials: "omit",
+        body: JSON.stringify({
+            "id": groupId,
+            "particapant": particapant
+        })
+      })
+      const groupsJson = await groups.json();
+      if (groupsJson.error) {
+        return {error: groupsJson.error}
+      }
+      return {error: "", message: groupsJson}
+    } catch (err) {
+      console.error(err);
+      return {error: "Error Accepting Particapant."};
     }
 }

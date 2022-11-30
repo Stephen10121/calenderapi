@@ -1,11 +1,22 @@
 import { useEffect, useState } from "react";
-import { groupInfo, Particapant } from "../../../functions/backendFetch";
+import { acceptParticapant, groupInfo, Particapant } from "../../../functions/backendFetch";
+import Popdown from "../popdown/Popdown";
 import styles from "./GroupInfo.module.css";
 
 export default function GroupInfo({ groupId, token, othersCanAdd }: { groupId: string, token: string, othersCanAdd: boolean }) {
     const [data, setData] = useState<any>(<div className={styles.cloader}><span className="loader"></span></div>);
     const daytostring = ["N/A", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
     const montostring = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
+
+    async function particapantAccept(id: string) {
+        const data = await acceptParticapant(groupId, token, id);
+        if (data.error || !data.message) {
+            console.log(data.error);
+            return;
+        }
+        console.log(data.message);
+    }
+
     useEffect(() => {
         groupInfo(groupId, token).then((data) => {
             if (data.error || !data.data) {
@@ -18,6 +29,7 @@ export default function GroupInfo({ groupId, token, othersCanAdd }: { groupId: s
                 const newDate = `${daytostring[date.getDay()]}, ${montostring[date.getMonth()]} ${date.getDate()}, ${date.getFullYear()}.`;
                 setData(
                 <div className={styles.groupInfo}>
+                    <Popdown />
                     <p className={styles.info}>Info</p>
                     <ul className={styles.infoList}>
                         <li><span>Owner: </span>{data.data.owner}{data.data.yourowner ? " (you)" : null}</li>
@@ -27,7 +39,7 @@ export default function GroupInfo({ groupId, token, othersCanAdd }: { groupId: s
                                 {data.data.particapants.map((particapant: Particapant) => <li key={particapant.id}>
                                     <div className={styles.particapantListItem} >
                                         <p>{particapant.name}{particapant.id === data.data?.yourowner?.ownerId? " (you)":null}</p>
-                                        {data.data?.yourowner && data.data.yourowner.ownerId !== particapant.id ? <button>Kick Out</button>:null}
+                                        {data.data?.yourowner && data.data.yourowner.ownerId !== particapant.id ? <button>Remove</button>:null}
                                     </div>
                                 </li>)}
                             </ul>
@@ -38,7 +50,7 @@ export default function GroupInfo({ groupId, token, othersCanAdd }: { groupId: s
                                 {data.data.yourowner.pending_particapants.map((particapant: Particapant) => <li key={particapant.id}>
                                     <div className={styles.particapantListItem} >
                                         <p>{particapant.name}</p>
-                                        {data.data?.yourowner ? <div className={styles.accept}><button>Accept</button><button>Decline</button></div>:null}
+                                        {data.data?.yourowner ? <div className={styles.accept}><button onClick={() => particapantAccept(particapant.id.toString())}>Accept</button><button>Decline</button></div>:null}
                                     </div>
                                 </li>)}
                             </ul>

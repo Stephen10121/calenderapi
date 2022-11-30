@@ -1,4 +1,4 @@
-import { FormEvent, FormEventHandler, useState } from "react";
+import { FormEvent, useState } from "react";
 import { login } from "../../functions/backendFetch";
 import classes from "./NotLogged.module.css";
 
@@ -13,6 +13,31 @@ export default function NotLogged({ loggedIn }: { loggedIn: (email: string, pass
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+
+  // const responseGoogle = (response: any) => {
+  //   console.log(response);
+  // }
+  // const clientId = "665789630027-g9gogfmb2qo3s4egs0boghfhc2so267i.apps.googleusercontent.com";
+
+
+  // useEffect(() => {
+  //   // global google
+  //   //@ts-ignore
+  //   google.accounts!.id.initialize({
+  //     clientId,
+  //     callback: responseGoogle
+  //   });
+  //   const googleDiv = document.querySelector("#googleSignup");
+  //   //@ts-ignore
+  //   google.accounts.id.renderButton(googleDiv, {
+  //     theme: "outline",
+  //     size: "large",
+  //     type: "standard"
+  //   });
+
+  //   //@ts-ignore
+  //   google.accounts.id.prompt();
+  // }, []);
 
   function formSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -40,6 +65,7 @@ export default function NotLogged({ loggedIn }: { loggedIn: (email: string, pass
         <button className={classes.login} type="submit">{loading ? <div className="preloader"><span className="loader2"></span></div>: "Login"}</button>
         <button className={classes.input2}><img src="/google.png" alt="Google Icon" /><p>Continue With Google</p></button>
       </form>
+      <div id="googleSignup"></div>,
     </div>
   );
 }

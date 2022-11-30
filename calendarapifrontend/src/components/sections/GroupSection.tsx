@@ -2,6 +2,7 @@ import { useState } from "react";
 import GroupIcon from "../GroupIcon";
 import GroupInfo from "../groupInfo/GroupInfo";
 import { GroupsType } from "../Groups";
+import PendingGroupInfo from "../pendingGroupInfo/PendingGroupInfo";
 import { PendingGroupsType } from "../PendingGroups";
 import SlideUp, { SlideUpData } from "../slideUp/SlideUp";
 import styles from "./GroupSection.module.css";
@@ -11,6 +12,10 @@ export default function GroupSection({ groups, pendingGroups, token }: { groups:
 
     function groupClicked(groupId: string, name: string, othersCanAdd: boolean) {
         setShowSlideUp({ show: true, header: name, children: <GroupInfo token={token} groupId={groupId} othersCanAdd={othersCanAdd}/>, border: "black" });
+    }
+
+    function pendingGroupClicked(groupId: string, name: string, _othersCanAdd: boolean) {
+        setShowSlideUp({ show: true, header: name, children: <PendingGroupInfo token={token} groupId={groupId} />, border: "black" });
     }
 
     return (
@@ -29,7 +34,7 @@ export default function GroupSection({ groups, pendingGroups, token }: { groups:
             <div className={styles.available}>
                 <p className={styles.title}>Pending</p>
                 <div className={styles.comingUpList}>
-                {pendingGroups.map((group) => <GroupIcon key={group.groupId} id={group.groupId} name={group.groupName} othersCanAdd={false} owner="Anonymous" click={console.log}/>)}
+                {pendingGroups.map((group) => <GroupIcon key={group.groupId} id={group.groupId} name={group.groupName} othersCanAdd={false} owner="Anonymous" click={pendingGroupClicked}/>)}
                 </div>
             </div> : null }
         </div>
