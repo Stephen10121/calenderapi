@@ -86,7 +86,7 @@ func CreateGroup(c *gin.Context) {
 		return
 	}
 
-	group := models.Group{Owner: user.ID, OwnerEmail: user.Email, GroupID: body.Id, Password: string(hash), Name: body.Name, OthersCanAdd: body.OthersCanAdd, OwnerName: user.Name, AboutGroup: body.AboutGroup, Particapants: strconv.FormatUint(uint64(user.ID), 10)}
+	group := models.Group{Owner: user.ID, OwnerEmail: user.Email, GroupID: body.Id, Password: string(hash), Name: body.Name, OthersCanAdd: body.OthersCanAdd, OwnerName: user.FirstName + " " + user.LastName, AboutGroup: body.AboutGroup, Particapants: strconv.FormatUint(uint64(user.ID), 10)}
 	result := initializers.DB.Create(&group)
 
 	if result.Error != nil {
@@ -151,7 +151,7 @@ func GetGroupInfo(c *gin.Context) {
 			var user models.User
 			initializers.DB.First(&user, "id = ?", s)
 			if user.ID != 0 {
-				groupUsers = append(groupUsers, PartiacapantSend{Name: user.Name, Id: user.ID})
+				groupUsers = append(groupUsers, PartiacapantSend{Name: user.FirstName + " " + user.LastName, Id: user.ID})
 			}
 		}
 
@@ -162,7 +162,7 @@ func GetGroupInfo(c *gin.Context) {
 				var user models.User
 				initializers.DB.First(&user, "id = ?", s)
 				if user.ID != 0 {
-					groupUsersPending = append(groupUsersPending, PartiacapantSend{Name: user.Name, Id: user.ID})
+					groupUsersPending = append(groupUsersPending, PartiacapantSend{Name: user.FirstName + " " + user.LastName, Id: user.ID})
 				}
 			}
 
@@ -263,7 +263,7 @@ func JoinGroup(c *gin.Context) {
 	particapants := group.PendingParticapants + ":" + strconv.FormatUint(uint64(user.ID), 10)
 	initializers.DB.Model(&models.Group{}).Where("id = ?", group.ID).Update("pending_particapants", particapants)
 
-	messageToOwner := user.Name + " wants to join your group."
+	messageToOwner := user.FirstName + " " + user.LastName + " wants to join your group."
 	realtime.NotifyGroupOwner(group.ID, "Pending New User", messageToOwner)
 
 	c.JSON(http.StatusOK, gin.H{
@@ -288,41 +288,47 @@ func GetMyGroups(c *gin.Context) {
 	user2, _ := c.Get("user")
 	user := user2.(models.User)
 
-	usersCurrentPendingGroups := strings.Split(user.PendingGroups, ":")
 	var userCurrentPendingGroupsJson []groupPendingData
-	if len(usersCurrentPendingGroups) != 0 {
-		for i := 0; i < len(usersCurrentPendingGroups); i++ {
-			var group models.Group
-			u64, err := strconv.ParseUint(usersCurrentPendingGroups[i], 10, 16)
-			if err != nil {
-				fmt.Println(err)
-				continue
-			}
-			initializers.DB.First(&group, u64)
 
-			if group.ID == 0 {
-				continue
+	if user.PendingGroups != "" {
+		usersCurrentPendingGroups := strings.Split(user.PendingGroups, ":")
+		if len(usersCurrentPendingGroups) != 0 {
+			for i := 0; i < len(usersCurrentPendingGroups); i++ {
+				var group models.Group
+				u64, err := strconv.ParseUint(usersCurrentPendingGroups[i], 10, 16)
+				if err != nil {
+					fmt.Println(err)
+					continue
+				}
+				initializers.DB.First(&group, u64)
+
+				if group.ID == 0 {
+					continue
+				}
+				userCurrentPendingGroupsJson = append(userCurrentPendingGroupsJson, groupPendingData{GroupId: group.GroupID, GroupName: group.Name})
 			}
-			userCurrentPendingGroupsJson = append(userCurrentPendingGroupsJson, groupPendingData{GroupId: group.GroupID, GroupName: group.Name})
 		}
 	}
-	usersCurrentGroups := strings.Split(user.Groups, ":")
+
 	var usersCurrentGroupsJson []groupData
+	if user.Groups != "" {
+		usersCurrentGroups := strings.Split(user.Groups, ":")
 
-	if len(usersCurrentGroups) != 0 {
-		for i := 0; i < len(usersCurrentGroups); i++ {
-			var group models.Group
-			u64, err := strconv.ParseUint(usersCurrentGroups[i], 10, 16)
-			if err != nil {
-				fmt.Println(err)
-				continue
-			}
-			initializers.DB.First(&group, u64)
+		if len(usersCurrentGroups) != 0 {
+			for i := 0; i < len(usersCurrentGroups); i++ {
+				var group models.Group
+				u64, err := strconv.ParseUint(usersCurrentGroups[i], 10, 16)
+				if err != nil {
+					fmt.Println(err)
+					continue
+				}
+				initializers.DB.First(&group, u64)
 
-			if group.ID == 0 {
-				continue
+				if group.ID == 0 {
+					continue
+				}
+				usersCurrentGroupsJson = append(usersCurrentGroupsJson, groupData{GroupId: group.GroupID, GroupName: group.Name, OthersCanAdd: group.OthersCanAdd, GroupOwner: group.OwnerName})
 			}
-			usersCurrentGroupsJson = append(usersCurrentGroupsJson, groupData{GroupId: group.GroupID, GroupName: group.Name, OthersCanAdd: group.OthersCanAdd, GroupOwner: group.OwnerName})
 		}
 	}
 

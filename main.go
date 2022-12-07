@@ -21,8 +21,9 @@ func main() {
 	router := gin.Default()
 	router.Use(middleware.CORSMiddleware())
 	// Authentication
-	router.POST("/login", routes.Login)
-	router.POST("/signup", routes.Signup)
+	// router.POST("/login", routes.Login)
+	// router.POST("/signup", routes.Signup)
+	router.POST("/google", routes.GoogleLogin)
 	router.GET("/validate", middleware.RequireAuth, routes.Validate)
 	// Group Part
 	router.POST("/createGroup", middleware.RequireAuth, routes.CreateGroup)

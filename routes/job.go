@@ -62,7 +62,7 @@ func AddJob(c *gin.Context) {
 		return
 	}
 
-	job := models.Job{Client: body.Client, Address: body.Address, Volunteer: "", Date: body.Date, Time: body.Time, JobTitle: body.JobTitle, GroupId: group.GroupID, Instuctions: body.Instuctions, GroupName: group.Name, Issuer: user.ID, IssuerName: user.Name, Taken: false, Positions: body.Positions}
+	job := models.Job{Client: body.Client, Address: body.Address, Volunteer: "", Date: body.Date, Time: body.Time, JobTitle: body.JobTitle, GroupId: group.GroupID, Instuctions: body.Instuctions, GroupName: group.Name, Issuer: user.ID, IssuerName: user.FirstName + " " + user.LastName, Taken: false, Positions: body.Positions}
 	result := initializers.DB.Create(&job)
 
 	if result.Error != nil {
