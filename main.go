@@ -28,10 +28,14 @@ func main() {
 	// Group Part
 	router.POST("/createGroup", middleware.RequireAuth, routes.CreateGroup)
 	router.POST("/joinGroup", middleware.RequireAuth, routes.JoinGroup)
+	router.POST("/leaveGroup", middleware.RequireAuth, routes.LeaveGroup)
 	router.POST("/groupIdTaken", middleware.RequireAuth, routes.GroupIdTaken)
 	router.POST("/groupInfo", middleware.RequireAuth, routes.GetGroupInfo)
 	router.GET("/myGroups", middleware.RequireAuth, routes.GetMyGroups)
 	router.POST("/acceptUser", middleware.RequireAuth, routes.AcceptParticapant)
+	router.POST("/rejectUser", middleware.RequireAuth, routes.RejectParticapant)
+	router.POST("/cancelRequest", middleware.RequireAuth, routes.CancelRequest)
+	router.POST("/kickUser", middleware.RequireAuth, routes.KickParticapant)
 	// Job Part
 	router.POST("/addJob", middleware.RequireAuth, routes.AddJob)
 	router.POST("/getJobs", middleware.RequireAuth, routes.GetJobs)

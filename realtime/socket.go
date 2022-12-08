@@ -16,3 +16,33 @@ func NotifyGroupOwner(groupId uint, title string, message string) {
 	fmt.Print(": ")
 	fmt.Println(message)
 }
+
+func UserKickedOut(groupID uint, userId uint) {
+	fmt.Print(userId)
+	fmt.Print(" got kicked out of ")
+	fmt.Println(groupID)
+}
+
+func UserGotAccepted(groupID uint, userId uint) {
+	fmt.Print(userId)
+	fmt.Print(" joined ")
+	fmt.Println(groupID)
+}
+
+func UserGotRejected(groupID uint, userId uint) {
+	fmt.Print(userId)
+	fmt.Print(" got rejected from ")
+	fmt.Println(groupID)
+}
+
+func UserLeft(groupID uint, userId uint) {
+	fmt.Print(userId)
+	fmt.Print(" left ")
+	fmt.Println(groupID)
+}
+
+func UserLeftWhilePending(groupID uint, userId uint) {
+	fmt.Print(userId)
+	fmt.Print(" left while pending ")
+	fmt.Println(groupID)
+}
