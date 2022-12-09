@@ -114,8 +114,7 @@ func CreateGroup(c *gin.Context) {
 			"groupName":    group.Name,
 			"groupOwner":   group.OwnerName,
 			"groupId":      group.GroupID,
-			"aboutGroup":   group.AboutGroup,
-			"particapants": particapants,
+			"othersCanAdd": group.OthersCanAdd,
 		},
 	})
 	return
@@ -404,7 +403,7 @@ func LeaveGroup(c *gin.Context) {
 
 	if len(usersGroups) != 0 {
 		for i := 0; i < len(usersGroups); i++ {
-			if usersGroups[i] != strconv.FormatUint(uint64(group.ID), 10) {
+			if usersGroups[i] != strconv.FormatUint(uint64(group.ID), 10) && len(usersGroups[i]) != 0 {
 				groups = groups + ":" + usersGroups[i]
 			}
 		}
@@ -416,7 +415,7 @@ func LeaveGroup(c *gin.Context) {
 
 	if len(groupParticapants) != 0 {
 		for i := 0; i < len(groupParticapants); i++ {
-			if groupParticapants[i] != strconv.FormatUint(uint64(user.ID), 10) {
+			if groupParticapants[i] != strconv.FormatUint(uint64(user.ID), 10) && len(groupParticapants[i]) != 0 {
 				particapants = particapants + ":" + groupParticapants[i]
 			}
 		}
@@ -483,7 +482,7 @@ func CancelRequest(c *gin.Context) {
 
 	if len(usersGroups) != 0 {
 		for i := 0; i < len(usersGroups); i++ {
-			if usersGroups[i] != strconv.FormatUint(uint64(group.ID), 10) {
+			if usersGroups[i] != strconv.FormatUint(uint64(group.ID), 10) && len(usersGroups[i]) != 0 {
 				groups = groups + ":" + usersGroups[i]
 			}
 		}
@@ -495,7 +494,7 @@ func CancelRequest(c *gin.Context) {
 
 	if len(groupParticapants) != 0 {
 		for i := 0; i < len(groupParticapants); i++ {
-			if groupParticapants[i] != strconv.FormatUint(uint64(user.ID), 10) {
+			if groupParticapants[i] != strconv.FormatUint(uint64(user.ID), 10) && len(groupParticapants[i]) != 0 {
 				particapants = particapants + ":" + groupParticapants[i]
 			}
 		}

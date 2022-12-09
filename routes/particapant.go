@@ -91,7 +91,7 @@ func RejectParticapant(c *gin.Context) {
 
 	if len(usersPendingGroups) != 0 {
 		for i := 0; i < len(usersPendingGroups); i++ {
-			if usersPendingGroups[i] != strconv.FormatUint(uint64(group.ID), 10) {
+			if usersPendingGroups[i] != strconv.FormatUint(uint64(group.ID), 10) && len(usersPendingGroups[i]) != 0 {
 				pendingGroups = pendingGroups + ":" + usersPendingGroups[i]
 			}
 		}
@@ -103,7 +103,7 @@ func RejectParticapant(c *gin.Context) {
 
 	if len(groupPendingParticapants) != 0 {
 		for i := 0; i < len(groupPendingParticapants); i++ {
-			if groupPendingParticapants[i] != strconv.FormatUint(uint64(userPart.ID), 10) {
+			if groupPendingParticapants[i] != strconv.FormatUint(uint64(userPart.ID), 10) && len(groupPendingParticapants[i]) != 0 {
 				pendingParticapants = pendingParticapants + ":" + groupPendingParticapants[i]
 			}
 		}
@@ -196,7 +196,7 @@ func KickParticapant(c *gin.Context) {
 
 	if len(usersGroups) != 0 {
 		for i := 0; i < len(usersGroups); i++ {
-			if usersGroups[i] != strconv.FormatUint(uint64(group.ID), 10) {
+			if usersGroups[i] != strconv.FormatUint(uint64(group.ID), 10) && len(usersGroups[i]) != 0 {
 				groups = groups + ":" + usersGroups[i]
 			}
 		}
@@ -208,7 +208,7 @@ func KickParticapant(c *gin.Context) {
 
 	if len(groupParticapants) != 0 {
 		for i := 0; i < len(groupParticapants); i++ {
-			if groupParticapants[i] != strconv.FormatUint(uint64(userPart.ID), 10) {
+			if groupParticapants[i] != strconv.FormatUint(uint64(userPart.ID), 10) && len(groupParticapants[i]) != 0 {
 				particapants = particapants + ":" + groupParticapants[i]
 			}
 		}
@@ -294,7 +294,7 @@ func AcceptParticapant(c *gin.Context) {
 
 	if len(usersPendingGroups) != 0 {
 		for i := 0; i < len(usersPendingGroups); i++ {
-			if usersPendingGroups[i] != strconv.FormatUint(uint64(group.ID), 10) {
+			if usersPendingGroups[i] != strconv.FormatUint(uint64(group.ID), 10) && len(usersPendingGroups[i]) != 0 {
 				pendingGroups = pendingGroups + ":" + usersPendingGroups[i]
 			}
 		}
@@ -308,7 +308,7 @@ func AcceptParticapant(c *gin.Context) {
 
 	if len(groupPendingParticapants) != 0 {
 		for i := 0; i < len(groupPendingParticapants); i++ {
-			if groupPendingParticapants[i] != strconv.FormatUint(uint64(userPart.ID), 10) {
+			if groupPendingParticapants[i] != strconv.FormatUint(uint64(userPart.ID), 10) && len(groupPendingParticapants[i]) != 0 {
 				pendingParticapants = pendingParticapants + ":" + groupPendingParticapants[i]
 			}
 		}
