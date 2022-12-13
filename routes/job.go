@@ -1,10 +1,9 @@
 package routes
 
 import (
+	"encoding/json"
 	"fmt"
 	"net/http"
-	"strconv"
-	"strings"
 
 	"github.com/gin-gonic/gin"
 	"github.com/stephen10121/calenderapi/functions"
@@ -53,9 +52,9 @@ func AddJob(c *gin.Context) {
 	user2, _ := c.Get("user")
 	user := user2.(models.User)
 
-	groupParticapants := strings.Split(group.Particapants, ":")
-
-	if functions.Contains(groupParticapants, strconv.FormatUint(uint64(user.ID), 10)) != true || group.OthersCanAdd != true {
+	var groupParticapants []uint
+	json.Unmarshal([]byte(group.Particapants), &groupParticapants)
+	if functions.UintContains(groupParticapants, user.ID) != true || group.OthersCanAdd != true {
 		c.JSON(http.StatusMethodNotAllowed, gin.H{
 			"error": "User not allowed to add job",
 		})
@@ -112,11 +111,12 @@ func GetJobs(c *gin.Context) {
 		return
 	}
 
-	groupParticapants := strings.Split(group.Particapants, ":")
 	user2, _ := c.Get("user")
 	user := user2.(models.User)
 
-	if functions.Contains(groupParticapants, strconv.FormatUint(uint64(user.ID), 10)) != true {
+	var groupParticapants []uint
+	json.Unmarshal([]byte(group.Particapants), &groupParticapants)
+	if functions.UintContains(groupParticapants, user.ID) != true {
 		c.JSON(http.StatusMethodNotAllowed, gin.H{
 			"error": "User not part of group",
 		})

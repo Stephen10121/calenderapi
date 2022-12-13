@@ -104,8 +104,8 @@ func GoogleLogin(c *gin.Context) {
 
 	if user.ID == 0 {
 		// Users first time loggin in.
-
-		user := models.User{Email: data.Email, GoogId: data.Id, FirstName: data.Given_name, LastName: data.Family_name, FullName: data.Name, Groups: "", PendingGroups: "", Locale: data.Locale, Picture: data.Picture, VerifiedEmail: data.Verified_email}
+		groupsJson, _ := json.Marshal([]uint{})
+		user := models.User{Email: data.Email, GoogId: data.Id, FirstName: data.Given_name, LastName: data.Family_name, FullName: data.Name, Groups: string(groupsJson), PendingGroups: string(groupsJson), Locale: data.Locale, Picture: data.Picture, VerifiedEmail: data.Verified_email}
 		result := initializers.DB.Create(&user)
 
 		if result.Error != nil {

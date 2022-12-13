@@ -1,10 +1,16 @@
 package routes
 
+// u64, err := strconv.ParseUint(s, 10, 16)
+// if err != nil {
+// 	continue
+// }
+
+//strconv.FormatUint(uint64(group.ID), 10)
+
 import (
+	"encoding/json"
 	"fmt"
 	"net/http"
-	"strconv"
-	"strings"
 
 	"github.com/gin-gonic/gin"
 	"github.com/stephen10121/calenderapi/functions"
@@ -85,8 +91,9 @@ func CreateGroup(c *gin.Context) {
 		})
 		return
 	}
-
-	group := models.Group{Owner: user.ID, OwnerEmail: user.Email, GroupID: body.Id, Password: string(hash), Name: body.Name, OthersCanAdd: body.OthersCanAdd, OwnerName: user.FirstName + " " + user.LastName, AboutGroup: body.AboutGroup, Particapants: strconv.FormatUint(uint64(user.ID), 10)}
+	particapantsJson, _ := json.Marshal([]uint{user.ID})
+	pendingPartJson, _ := json.Marshal([]uint{})
+	group := models.Group{Owner: user.ID, OwnerEmail: user.Email, GroupID: body.Id, Password: string(hash), Name: body.Name, OthersCanAdd: body.OthersCanAdd, OwnerName: user.FirstName + " " + user.LastName, AboutGroup: body.AboutGroup, Particapants: string(particapantsJson), PendingParticapants: string(pendingPartJson)}
 	result := initializers.DB.Create(&group)
 
 	if result.Error != nil {
@@ -96,18 +103,11 @@ func CreateGroup(c *gin.Context) {
 		return
 	}
 
-	groups := user.Groups + ":" + strconv.FormatUint(uint64(group.ID), 10)
-	initializers.DB.Model(&models.User{}).Where("id = ?", user.ID).Update("groups", groups)
-
-	users := strings.Split(group.Particapants, ":")
-	var particapants []PartiacapantSend
-	for _, s := range users {
-		var user models.User
-		initializers.DB.First(&user, "id = ?", s)
-		if user.ID != 0 {
-			particapants = append(particapants, PartiacapantSend{Name: user.FirstName + " " + user.LastName, Id: user.ID})
-		}
-	}
+	var groups []uint
+	json.Unmarshal([]byte(user.Groups), &groups)
+	groups = append(groups, group.ID)
+	groupsJson, _ := json.Marshal(groups)
+	initializers.DB.Model(&models.User{}).Where("id = ?", user.ID).Update("groups", groupsJson)
 
 	c.JSON(http.StatusOK, gin.H{
 		"data": gin.H{
@@ -154,60 +154,64 @@ func GetGroupInfo(c *gin.Context) {
 		})
 		return
 	}
-
-	users := strings.Split(group.Particapants, ":")
-	if functions.Contains(users, strconv.FormatUint(uint64(user.ID), 10)) {
-		var groupUsers []PartiacapantSend
-		for _, s := range users {
-			var user models.User
-			initializers.DB.First(&user, "id = ?", s)
-			if user.ID != 0 {
-				groupUsers = append(groupUsers, PartiacapantSend{Name: user.FirstName + " " + user.LastName, Id: user.ID})
-			}
-		}
-
-		if user.ID == group.Owner {
-			usersPending := strings.Split(group.PendingParticapants, ":")
-			var groupUsersPending []PartiacapantSend
-			for _, s := range usersPending {
-				var user models.User
-				initializers.DB.First(&user, "id = ?", s)
-				if user.ID != 0 {
-					groupUsersPending = append(groupUsersPending, PartiacapantSend{Name: user.FirstName + " " + user.LastName, Id: user.ID})
-				}
-			}
-
-			c.JSON(http.StatusOK, gin.H{
-				"name":         group.Name,
-				"owner":        group.OwnerName,
-				"owner_email":  group.OwnerEmail,
-				"created":      group.CreatedAt,
-				"group_id":     group.GroupID,
-				"about_group":  group.AboutGroup,
-				"particapants": groupUsers,
-				"yourowner": gin.H{
-					"ownerId":              group.Owner,
-					"pending_particapants": groupUsersPending,
-				},
-			})
-			return
-		}
-
-		c.JSON(http.StatusOK, gin.H{
-			"name":         group.Name,
-			"owner_email":  group.OwnerEmail,
-			"owner":        group.OwnerName,
-			"created":      group.CreatedAt,
-			"group_id":     group.GroupID,
-			"about_group":  group.AboutGroup,
-			"particapants": groupUsers,
-			"yourowner":    false,
+	var groupParticapants []uint
+	json.Unmarshal([]byte(group.Particapants), &groupParticapants)
+	if functions.UintContains(groupParticapants, user.ID) != true {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "User not in group.",
 		})
 		return
 	}
 
-	c.JSON(http.StatusBadRequest, gin.H{
-		"error": "User not in group.",
+	var groupUsers []PartiacapantSend
+	for _, s := range groupParticapants {
+		var user models.User
+		initializers.DB.First(&user, "id = ?", s)
+		if user.ID != 0 {
+			groupUsers = append(groupUsers, PartiacapantSend{Name: user.FirstName + " " + user.LastName, Id: user.ID})
+		}
+	}
+
+	if user.ID == group.Owner {
+		var groupUsersPending []PartiacapantSend
+
+		fmt.Println(group.PendingParticapants)
+		var groupPendingParticapants []uint
+		json.Unmarshal([]byte(group.PendingParticapants), &groupPendingParticapants)
+		for _, s := range groupPendingParticapants {
+			var user2 models.User
+			fmt.Println(s)
+			initializers.DB.First(&user2, "id = ?", s)
+			if user2.ID != 0 {
+				groupUsersPending = append(groupUsersPending, PartiacapantSend{Name: user2.FirstName + " " + user2.LastName, Id: user2.ID})
+			}
+		}
+
+		c.JSON(http.StatusOK, gin.H{
+			"name":         group.Name,
+			"owner":        group.OwnerName,
+			"owner_email":  group.OwnerEmail,
+			"created":      group.CreatedAt,
+			"group_id":     group.GroupID,
+			"about_group":  group.AboutGroup,
+			"particapants": groupUsers,
+			"yourowner": gin.H{
+				"ownerId":              group.Owner,
+				"pending_particapants": groupUsersPending,
+			},
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"name":         group.Name,
+		"owner_email":  group.OwnerEmail,
+		"owner":        group.OwnerName,
+		"created":      group.CreatedAt,
+		"group_id":     group.GroupID,
+		"about_group":  group.AboutGroup,
+		"particapants": groupUsers,
+		"yourowner":    false,
 	})
 	return
 }
@@ -253,28 +257,36 @@ func JoinGroup(c *gin.Context) {
 		})
 		return
 	}
-
-	usersCurrentPendingGroups := strings.Split(user.PendingGroups, ":")
-	if functions.Contains(usersCurrentPendingGroups, strconv.FormatUint(uint64(group.ID), 10)) {
+	var userPendingGroups []uint
+	json.Unmarshal([]byte(user.PendingGroups), &userPendingGroups)
+	if functions.UintContains(userPendingGroups, group.ID) {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"error": "Already joined or attempted to join",
 		})
 		return
 	}
 
-	usersCurrentGroups := strings.Split(user.Groups, ":")
-	if functions.Contains(usersCurrentGroups, strconv.FormatUint(uint64(group.ID), 10)) {
+	var userGroups []uint
+	json.Unmarshal([]byte(user.Groups), &userGroups)
+	if functions.UintContains(userGroups, group.ID) {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"error": "Already joined or attempted to join",
 		})
 		return
 	}
 
-	groups := user.PendingGroups + ":" + strconv.FormatUint(uint64(group.ID), 10)
-	initializers.DB.Model(&models.User{}).Where("id = ?", user.ID).Update("pending_groups", groups)
+	var pendingGroups []uint
+	json.Unmarshal([]byte(user.PendingGroups), &pendingGroups)
+	pendingGroups = append(pendingGroups, group.ID)
+	pendingGroupsJson, _ := json.Marshal(pendingGroups)
+	fmt.Println(pendingGroups)
+	initializers.DB.Model(&models.User{}).Where("id = ?", user.ID).Update("pending_groups", pendingGroupsJson)
 
-	particapants := group.PendingParticapants + ":" + strconv.FormatUint(uint64(user.ID), 10)
-	initializers.DB.Model(&models.Group{}).Where("id = ?", group.ID).Update("pending_particapants", particapants)
+	var pendingParticapantSlice []uint
+	json.Unmarshal([]byte(group.PendingParticapants), &pendingParticapantSlice)
+	pendingParticapantSlice = append(pendingParticapantSlice, user.ID)
+	pendingParticapantSliceJson, _ := json.Marshal(pendingParticapantSlice)
+	initializers.DB.Model(&models.Group{}).Where("id = ?", group.ID).Update("pending_particapants", pendingParticapantSliceJson)
 
 	messageToOwner := user.FirstName + " " + user.LastName + " wants to join your group."
 	realtime.NotifyGroupOwner(group.ID, "Pending New User", messageToOwner)
@@ -303,47 +315,29 @@ func GetMyGroups(c *gin.Context) {
 	user := user2.(models.User)
 
 	var userCurrentPendingGroupsJson []groupPendingData
+	var userPendingGroups []uint
+	json.Unmarshal([]byte(user.PendingGroups), &userPendingGroups)
+	for _, s := range userPendingGroups {
+		var group models.Group
+		initializers.DB.First(&group, s)
 
-	if user.PendingGroups != "" {
-		usersCurrentPendingGroups := strings.Split(user.PendingGroups, ":")
-		if len(usersCurrentPendingGroups) != 0 {
-			for i := 0; i < len(usersCurrentPendingGroups); i++ {
-				var group models.Group
-				u64, err := strconv.ParseUint(usersCurrentPendingGroups[i], 10, 16)
-				if err != nil {
-					fmt.Println(err)
-					continue
-				}
-				initializers.DB.First(&group, u64)
-
-				if group.ID == 0 {
-					continue
-				}
-				userCurrentPendingGroupsJson = append(userCurrentPendingGroupsJson, groupPendingData{GroupId: group.GroupID, GroupName: group.Name})
-			}
+		if group.ID == 0 {
+			continue
 		}
+		userCurrentPendingGroupsJson = append(userCurrentPendingGroupsJson, groupPendingData{GroupId: group.GroupID, GroupName: group.Name})
 	}
 
 	var usersCurrentGroupsJson []groupData
-	if user.Groups != "" {
-		usersCurrentGroups := strings.Split(user.Groups, ":")
+	var userGroups []uint
+	json.Unmarshal([]byte(user.Groups), &userGroups)
+	for _, s := range userGroups {
+		var group models.Group
+		initializers.DB.First(&group, s)
 
-		if len(usersCurrentGroups) != 0 {
-			for i := 0; i < len(usersCurrentGroups); i++ {
-				var group models.Group
-				u64, err := strconv.ParseUint(usersCurrentGroups[i], 10, 16)
-				if err != nil {
-					fmt.Println(err)
-					continue
-				}
-				initializers.DB.First(&group, u64)
-
-				if group.ID == 0 {
-					continue
-				}
-				usersCurrentGroupsJson = append(usersCurrentGroupsJson, groupData{GroupId: group.GroupID, GroupName: group.Name, OthersCanAdd: group.OthersCanAdd, GroupOwner: group.OwnerName})
-			}
+		if group.ID == 0 {
+			continue
 		}
+		usersCurrentGroupsJson = append(usersCurrentGroupsJson, groupData{GroupId: group.GroupID, GroupName: group.Name, OthersCanAdd: group.OthersCanAdd, GroupOwner: group.OwnerName})
 	}
 
 	c.JSON(http.StatusOK, gin.H{
@@ -394,14 +388,6 @@ func LeaveGroup(c *gin.Context) {
 			return
 		}
 
-		groupUsersParticapants := strings.Split(group.Particapants, ":")
-		if functions.Contains(groupUsersParticapants, body.Transfer) != true {
-			c.JSON(http.StatusBadRequest, gin.H{
-				"error": "User not part of the group.",
-			})
-			return
-		}
-
 		var userInPart models.User
 		initializers.DB.First(&userInPart, body.Transfer)
 
@@ -412,29 +398,37 @@ func LeaveGroup(c *gin.Context) {
 			return
 		}
 
-		usersGroups := strings.Split(user.Groups, ":")
-		var groups string
+		var groupParticapants []uint
+		json.Unmarshal([]byte(group.Particapants), &groupParticapants)
+		if functions.UintContains(groupParticapants, userInPart.ID) != true {
+			c.JSON(http.StatusBadRequest, gin.H{
+				"error": "User not part of the group.",
+			})
+			return
+		}
 
-		if len(usersGroups) != 0 {
-			for i := 0; i < len(usersGroups); i++ {
-				if usersGroups[i] != strconv.FormatUint(uint64(group.ID), 10) && len(usersGroups[i]) != 0 {
-					groups = groups + ":" + usersGroups[i]
-				}
+		var groups []uint
+		var userGroups []uint
+		json.Unmarshal([]byte(user.Groups), &userGroups)
+		for _, s := range userGroups {
+			if s != group.ID {
+				groups = append(groups, s)
 			}
 		}
-		initializers.DB.Model(&models.User{}).Where("id = ?", user.ID).Update("groups", groups)
+		groupsJson, _ := json.Marshal(groups)
+		initializers.DB.Model(&models.User{}).Where("id = ?", user.ID).Update("groups", groupsJson)
 
-		groupParticapants := strings.Split(group.Particapants, ":")
-		var particapants string
-
-		if len(groupParticapants) != 0 {
-			for i := 0; i < len(groupParticapants); i++ {
-				if groupParticapants[i] != strconv.FormatUint(uint64(user.ID), 10) && len(groupParticapants[i]) != 0 {
-					particapants = particapants + ":" + groupParticapants[i]
-				}
+		var particapants []uint
+		var groupsParticapants []uint
+		json.Unmarshal([]byte(group.Particapants), &groupsParticapants)
+		for _, s := range groupsParticapants {
+			if s != user.ID {
+				particapants = append(particapants, s)
 			}
 		}
-		initializers.DB.Model(&models.Group{}).Where("id = ?", group.ID).Update("particapants", particapants)
+		particapantsJson, _ := json.Marshal(particapants)
+		initializers.DB.Model(&models.Group{}).Where("id = ?", group.ID).Update("particapants", particapantsJson)
+
 		initializers.DB.Model(&models.Group{}).Where("id = ?", group.ID).Update("owner", userInPart.ID)
 		initializers.DB.Model(&models.Group{}).Where("id = ?", group.ID).Update("owner_email", userInPart.Email)
 		initializers.DB.Model(&models.Group{}).Where("id = ?", group.ID).Update("owner_name", userInPart.FullName)
@@ -447,37 +441,36 @@ func LeaveGroup(c *gin.Context) {
 		return
 	}
 
-	groupUsers := strings.Split(group.Particapants, ":")
-	if functions.Contains(groupUsers, strconv.FormatUint(uint64(user.ID), 10)) != true {
+	var groupsParticapants []uint
+	json.Unmarshal([]byte(group.Particapants), &groupsParticapants)
+	if functions.UintContains(groupsParticapants, user.ID) != true {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"error": "Your not part of the group.",
 		})
 		return
 	}
 
-	usersGroups := strings.Split(user.Groups, ":")
-	var groups string
-
-	if len(usersGroups) != 0 {
-		for i := 0; i < len(usersGroups); i++ {
-			if usersGroups[i] != strconv.FormatUint(uint64(group.ID), 10) && len(usersGroups[i]) != 0 {
-				groups = groups + ":" + usersGroups[i]
-			}
+	var groups []uint
+	var userGroups []uint
+	json.Unmarshal([]byte(user.Groups), &userGroups)
+	for _, s := range userGroups {
+		if s != group.ID {
+			groups = append(groups, s)
 		}
 	}
-	initializers.DB.Model(&models.User{}).Where("id = ?", user.ID).Update("groups", groups)
+	groupsJson, _ := json.Marshal(groups)
+	initializers.DB.Model(&models.User{}).Where("id = ?", user.ID).Update("groups", groupsJson)
 
-	groupParticapants := strings.Split(group.Particapants, ":")
-	var particapants string
-
-	if len(groupParticapants) != 0 {
-		for i := 0; i < len(groupParticapants); i++ {
-			if groupParticapants[i] != strconv.FormatUint(uint64(user.ID), 10) && len(groupParticapants[i]) != 0 {
-				particapants = particapants + ":" + groupParticapants[i]
-			}
+	var particapants []uint
+	var groupParticapants []uint
+	json.Unmarshal([]byte(group.Particapants), &groupParticapants)
+	for _, s := range groupParticapants {
+		if s != user.ID {
+			particapants = append(particapants, s)
 		}
 	}
-	initializers.DB.Model(&models.Group{}).Where("id = ?", group.ID).Update("particapants", particapants)
+	groupParticapantsJson, _ := json.Marshal(particapants)
+	initializers.DB.Model(&models.Group{}).Where("id = ?", group.ID).Update("particapants", groupParticapantsJson)
 
 	realtime.UserLeft(group.ID, user.ID)
 
@@ -526,37 +519,34 @@ func CancelRequest(c *gin.Context) {
 		return
 	}
 
-	groupUsers := strings.Split(group.PendingParticapants, ":")
-	if functions.Contains(groupUsers, strconv.FormatUint(uint64(user.ID), 10)) != true {
+	var groupParticapants []uint
+	json.Unmarshal([]byte(group.PendingParticapants), &groupParticapants)
+	if functions.UintContains(groupParticapants, user.ID) != true {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"error": "Your not pending.",
 		})
 		return
 	}
 
-	usersGroups := strings.Split(user.PendingGroups, ":")
-	var groups string
-
-	if len(usersGroups) != 0 {
-		for i := 0; i < len(usersGroups); i++ {
-			if usersGroups[i] != strconv.FormatUint(uint64(group.ID), 10) && len(usersGroups[i]) != 0 {
-				groups = groups + ":" + usersGroups[i]
-			}
+	var groups []uint
+	var userPendingGroups []uint
+	json.Unmarshal([]byte(user.PendingGroups), &userPendingGroups)
+	for _, s := range userPendingGroups {
+		if s != group.ID {
+			groups = append(groups, s)
 		}
 	}
-	initializers.DB.Model(&models.User{}).Where("id = ?", user.ID).Update("pending_groups", groups)
+	groupsJson, _ := json.Marshal(groups)
+	initializers.DB.Model(&models.User{}).Where("id = ?", user.ID).Update("pending_groups", groupsJson)
 
-	groupParticapants := strings.Split(group.PendingParticapants, ":")
-	var particapants string
-
-	if len(groupParticapants) != 0 {
-		for i := 0; i < len(groupParticapants); i++ {
-			if groupParticapants[i] != strconv.FormatUint(uint64(user.ID), 10) && len(groupParticapants[i]) != 0 {
-				particapants = particapants + ":" + groupParticapants[i]
-			}
+	var particapants []uint
+	for _, s := range groupParticapants {
+		if s != user.ID {
+			particapants = append(particapants, s)
 		}
 	}
-	initializers.DB.Model(&models.Group{}).Where("id = ?", group.ID).Update("pending_particapants", particapants)
+	particapantsJson, _ := json.Marshal(particapants)
+	initializers.DB.Model(&models.Group{}).Where("id = ?", group.ID).Update("pending_particapants", particapantsJson)
 
 	realtime.UserLeftWhilePending(group.ID, user.ID)
 
@@ -605,84 +595,48 @@ func RemoveGroup(c *gin.Context) {
 		return
 	}
 
-	groupParticapants := strings.Split(group.Particapants, ":")
-	if len(groupParticapants) != 0 {
-		for i := 0; i < len(groupParticapants); i++ {
-			u64, err := strconv.ParseUint(groupParticapants[i], 10, 16)
-			if err != nil {
-				fmt.Println(err)
-				continue
-			}
+	var groupParticapants []uint
+	json.Unmarshal([]byte(group.Particapants), &groupParticapants)
+	for _, s := range groupParticapants {
+		var userInPart models.User
+		initializers.DB.First(&userInPart, "id = ?", s)
 
-			var userInPart models.User
-			initializers.DB.First(&user, "id = ?", u64)
-
-			if userInPart.ID == 0 {
-				continue
-			}
-
-			usersGroups := strings.Split(userInPart.Groups, ":")
-			var newGroups string
-			if len(usersGroups) != 0 {
-				for i := 0; i < len(usersGroups); i++ {
-					if usersGroups[i] != strconv.FormatUint(uint64(group.ID), 10) && len(usersGroups[i]) != 0 {
-						newGroups = newGroups + ":" + usersGroups[i]
-					}
-				}
-			}
-			initializers.DB.Model(&models.User{}).Where("id = ?", u64).Update("groups", newGroups)
+		if userInPart.ID == 0 {
+			continue
 		}
+
+		var newGroups []uint
+		var userInPartGroups []uint
+		json.Unmarshal([]byte(userInPart.Groups), &userInPartGroups)
+		for _, s2 := range userInPartGroups {
+			if s2 != group.ID {
+				newGroups = append(newGroups, s2)
+			}
+		}
+		userInPartGroupsJson, _ := json.Marshal(newGroups)
+		initializers.DB.Model(&models.User{}).Where("id = ?", s).Update("groups", userInPartGroupsJson)
 	}
 
-	groupPendingParticapants := strings.Split(group.PendingParticapants, ":")
-	if len(groupPendingParticapants) != 0 {
-		for i := 0; i < len(groupPendingParticapants); i++ {
-			u64, err := strconv.ParseUint(groupPendingParticapants[i], 10, 16)
-			if err != nil {
-				fmt.Println(err)
-				continue
-			}
+	var groupPendingParticapants []uint
+	json.Unmarshal([]byte(group.PendingParticapants), &groupPendingParticapants)
+	for _, s := range groupPendingParticapants {
+		var userInPart models.User
+		initializers.DB.First(&userInPart, "id = ?", s)
 
-			var userInPart models.User
-			initializers.DB.First(&user, "id = ?", u64)
-
-			if userInPart.ID == 0 {
-				continue
-			}
-
-			usersGroups := strings.Split(userInPart.PendingGroups, ":")
-			var newGroups string
-			if len(usersGroups) != 0 {
-				for i := 0; i < len(usersGroups); i++ {
-					if usersGroups[i] != strconv.FormatUint(uint64(group.ID), 10) && len(usersGroups[i]) != 0 {
-						newGroups = newGroups + ":" + usersGroups[i]
-					}
-				}
-			}
-			initializers.DB.Model(&models.User{}).Where("id = ?", u64).Update("pending_groups", newGroups)
+		if userInPart.ID == 0 {
+			continue
 		}
-	}
 
-	usersGroups := strings.Split(user.PendingGroups, ":")
-	var groups string
-
-	if len(usersGroups) != 0 {
-		for i := 0; i < len(usersGroups); i++ {
-			if usersGroups[i] != strconv.FormatUint(uint64(group.ID), 10) && len(usersGroups[i]) != 0 {
-				groups = groups + ":" + usersGroups[i]
+		var newGroups []uint
+		var userInPartPendingGroups []uint
+		json.Unmarshal([]byte(userInPart.PendingGroups), &userInPartPendingGroups)
+		for _, s2 := range userInPartPendingGroups {
+			if s2 != group.ID {
+				newGroups = append(newGroups, s2)
 			}
 		}
-	}
-	initializers.DB.Model(&models.User{}).Where("id = ?", user.ID).Update("pending_groups", groups)
-
-	var particapants string
-
-	if len(groupParticapants) != 0 {
-		for i := 0; i < len(groupParticapants); i++ {
-			if groupParticapants[i] != strconv.FormatUint(uint64(user.ID), 10) && len(groupParticapants[i]) != 0 {
-				particapants = particapants + ":" + groupParticapants[i]
-			}
-		}
+		userInPartPendingGroupsJson, _ := json.Marshal(newGroups)
+		initializers.DB.Model(&models.User{}).Where("id = ?", s).Update("pending_groups", userInPartPendingGroupsJson)
 	}
 
 	initializers.DB.Delete(&models.Group{}, group.ID)
