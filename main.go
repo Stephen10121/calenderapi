@@ -35,6 +35,7 @@ func main() {
 	router.POST("/acceptUser", middleware.RequireAuth, routes.AcceptParticapant)
 	router.POST("/rejectUser", middleware.RequireAuth, routes.RejectParticapant)
 	router.POST("/cancelRequest", middleware.RequireAuth, routes.CancelRequest)
+	router.POST("/deleteGroup", middleware.RequireAuth, routes.RemoveGroup)
 	router.POST("/kickUser", middleware.RequireAuth, routes.KickParticapant)
 	// Job Part
 	router.POST("/addJob", middleware.RequireAuth, routes.AddJob)

@@ -508,3 +508,132 @@ func CancelRequest(c *gin.Context) {
 	})
 	return
 }
+
+func RemoveGroup(c *gin.Context) {
+	var body struct {
+		Id string `json:"id"`
+	}
+
+	if c.Bind(&body) != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "Failed to read body",
+		})
+		return
+	}
+
+	user2, _ := c.Get("user")
+	user := user2.(models.User)
+
+	if body.Id == "" {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "Failed to read body",
+		})
+		return
+	}
+
+	var group models.Group
+	initializers.DB.First(&group, "group_id = ?", body.Id)
+
+	if group.ID == 0 {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "Invalid Group",
+		})
+		return
+	}
+
+	if user.ID != group.Owner {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "Your not the owner.",
+		})
+		return
+	}
+
+	groupParticapants := strings.Split(group.Particapants, ":")
+	if len(groupParticapants) != 0 {
+		for i := 0; i < len(groupParticapants); i++ {
+			u64, err := strconv.ParseUint(groupParticapants[i], 10, 16)
+			if err != nil {
+				fmt.Println(err)
+				continue
+			}
+
+			var userInPart models.User
+			initializers.DB.First(&user, "id = ?", u64)
+
+			if userInPart.ID == 0 {
+				continue
+			}
+
+			usersGroups := strings.Split(userInPart.Groups, ":")
+			var newGroups string
+			if len(usersGroups) != 0 {
+				for i := 0; i < len(usersGroups); i++ {
+					if usersGroups[i] != strconv.FormatUint(uint64(group.ID), 10) && len(usersGroups[i]) != 0 {
+						newGroups = newGroups + ":" + usersGroups[i]
+					}
+				}
+			}
+			initializers.DB.Model(&models.User{}).Where("id = ?", u64).Update("groups", newGroups)
+		}
+	}
+
+	groupPendingParticapants := strings.Split(group.PendingParticapants, ":")
+	if len(groupPendingParticapants) != 0 {
+		for i := 0; i < len(groupPendingParticapants); i++ {
+			u64, err := strconv.ParseUint(groupPendingParticapants[i], 10, 16)
+			if err != nil {
+				fmt.Println(err)
+				continue
+			}
+
+			var userInPart models.User
+			initializers.DB.First(&user, "id = ?", u64)
+
+			if userInPart.ID == 0 {
+				continue
+			}
+
+			usersGroups := strings.Split(userInPart.PendingGroups, ":")
+			var newGroups string
+			if len(usersGroups) != 0 {
+				for i := 0; i < len(usersGroups); i++ {
+					if usersGroups[i] != strconv.FormatUint(uint64(group.ID), 10) && len(usersGroups[i]) != 0 {
+						newGroups = newGroups + ":" + usersGroups[i]
+					}
+				}
+			}
+			initializers.DB.Model(&models.User{}).Where("id = ?", u64).Update("pending_groups", newGroups)
+		}
+	}
+
+	usersGroups := strings.Split(user.PendingGroups, ":")
+	var groups string
+
+	if len(usersGroups) != 0 {
+		for i := 0; i < len(usersGroups); i++ {
+			if usersGroups[i] != strconv.FormatUint(uint64(group.ID), 10) && len(usersGroups[i]) != 0 {
+				groups = groups + ":" + usersGroups[i]
+			}
+		}
+	}
+	initializers.DB.Model(&models.User{}).Where("id = ?", user.ID).Update("pending_groups", groups)
+
+	var particapants string
+
+	if len(groupParticapants) != 0 {
+		for i := 0; i < len(groupParticapants); i++ {
+			if groupParticapants[i] != strconv.FormatUint(uint64(user.ID), 10) && len(groupParticapants[i]) != 0 {
+				particapants = particapants + ":" + groupParticapants[i]
+			}
+		}
+	}
+
+	initializers.DB.Delete(&models.Group{}, group.ID)
+
+	realtime.GroupDeleted(group.ID)
+
+	c.JSON(http.StatusOK, gin.H{
+		"message": "Success.",
+	})
+	return
+}

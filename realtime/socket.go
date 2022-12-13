@@ -46,3 +46,8 @@ func UserLeftWhilePending(groupID uint, userId uint) {
 	fmt.Print(" left while pending ")
 	fmt.Println(groupID)
 }
+
+func GroupDeleted(groupID uint) {
+	fmt.Print("Deleted ")
+	fmt.Println(groupID)
+}
