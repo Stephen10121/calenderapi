@@ -180,6 +180,7 @@ func GetGroupInfo(c *gin.Context) {
 			c.JSON(http.StatusOK, gin.H{
 				"name":         group.Name,
 				"owner":        group.OwnerName,
+				"owner_email":  group.OwnerEmail,
 				"created":      group.CreatedAt,
 				"group_id":     group.GroupID,
 				"about_group":  group.AboutGroup,
@@ -194,6 +195,7 @@ func GetGroupInfo(c *gin.Context) {
 
 		c.JSON(http.StatusOK, gin.H{
 			"name":         group.Name,
+			"owner_email":  group.OwnerEmail,
 			"owner":        group.OwnerName,
 			"created":      group.CreatedAt,
 			"group_id":     group.GroupID,
@@ -353,7 +355,8 @@ func GetMyGroups(c *gin.Context) {
 
 func LeaveGroup(c *gin.Context) {
 	var body struct {
-		Id string `json:"id"`
+		Id       string `json:"id"`
+		Transfer string `json:"transfer"`
 	}
 
 	if c.Bind(&body) != nil {
@@ -384,8 +387,62 @@ func LeaveGroup(c *gin.Context) {
 	}
 
 	if user.ID == group.Owner {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "Your the owner.",
+		if body.Transfer == "0" {
+			c.JSON(http.StatusBadRequest, gin.H{
+				"error": "New owner was not selected.",
+			})
+			return
+		}
+
+		groupUsersParticapants := strings.Split(group.Particapants, ":")
+		if functions.Contains(groupUsersParticapants, body.Transfer) != true {
+			c.JSON(http.StatusBadRequest, gin.H{
+				"error": "User not part of the group.",
+			})
+			return
+		}
+
+		var userInPart models.User
+		initializers.DB.First(&userInPart, body.Transfer)
+
+		if userInPart.ID == 0 {
+			c.JSON(http.StatusBadRequest, gin.H{
+				"error": "New owner doesnt exist.",
+			})
+			return
+		}
+
+		usersGroups := strings.Split(user.Groups, ":")
+		var groups string
+
+		if len(usersGroups) != 0 {
+			for i := 0; i < len(usersGroups); i++ {
+				if usersGroups[i] != strconv.FormatUint(uint64(group.ID), 10) && len(usersGroups[i]) != 0 {
+					groups = groups + ":" + usersGroups[i]
+				}
+			}
+		}
+		initializers.DB.Model(&models.User{}).Where("id = ?", user.ID).Update("groups", groups)
+
+		groupParticapants := strings.Split(group.Particapants, ":")
+		var particapants string
+
+		if len(groupParticapants) != 0 {
+			for i := 0; i < len(groupParticapants); i++ {
+				if groupParticapants[i] != strconv.FormatUint(uint64(user.ID), 10) && len(groupParticapants[i]) != 0 {
+					particapants = particapants + ":" + groupParticapants[i]
+				}
+			}
+		}
+		initializers.DB.Model(&models.Group{}).Where("id = ?", group.ID).Update("particapants", particapants)
+		initializers.DB.Model(&models.Group{}).Where("id = ?", group.ID).Update("owner", userInPart.ID)
+		initializers.DB.Model(&models.Group{}).Where("id = ?", group.ID).Update("owner_email", userInPart.Email)
+		initializers.DB.Model(&models.Group{}).Where("id = ?", group.ID).Update("owner_name", userInPart.FullName)
+
+		realtime.UserLeftTransfered(group.ID, user.ID, userInPart.ID)
+
+		c.JSON(http.StatusOK, gin.H{
+			"message": "Success.",
 		})
 		return
 	}

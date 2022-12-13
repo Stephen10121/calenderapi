@@ -41,6 +41,14 @@ func UserLeft(groupID uint, userId uint) {
 	fmt.Println(groupID)
 }
 
+func UserLeftTransfered(groupID uint, userId uint, newOwner uint) {
+	fmt.Print(userId)
+	fmt.Print(" left ")
+	fmt.Print(groupID)
+	fmt.Print(" and transfered ownership to ")
+	fmt.Println(newOwner)
+}
+
 func UserLeftWhilePending(groupID uint, userId uint) {
 	fmt.Print(userId)
 	fmt.Print(" left while pending ")
