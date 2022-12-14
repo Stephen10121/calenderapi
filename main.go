@@ -25,6 +25,7 @@ func main() {
 	// router.POST("/signup", routes.Signup)
 	router.POST("/google", routes.GoogleLogin)
 	router.GET("/validate", middleware.RequireAuth, routes.Validate)
+	router.POST("/addNotification", middleware.RequireAuth, routes.NotificationTokenAdd)
 	// Group Part
 	router.POST("/createGroup", middleware.RequireAuth, routes.CreateGroup)
 	router.POST("/joinGroup", middleware.RequireAuth, routes.JoinGroup)

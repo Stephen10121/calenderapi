@@ -1,0 +1,29 @@
+{
+  "name": "socket",
+  "version": "1.0.0",
+  "description": "The socket server for my calendar api",
+  "main": "index.ts",
+  "author": "Stephen Gruzin",
+  "license": "MIT",
+  "scripts": {
+    "start": "node --loader ts-node/esm index.ts",
+    "dev": "nodemon --exec node --loader ts-node/esm index.ts"
+  },
+  "devDependencies": {
+    "@types/express": "^4.17.14",
+    "@types/node": "^18.11.15",
+    "nodemon": "^2.0.20",
+    "ts-node": "^10.9.1",
+    "typescript": "^4.9.4"
+  },
+  "dependencies": {
+    "dotenv": "^16.0.3",
+    "expo-server-sdk": "^3.7.0",
+    "express": "^4.18.2",
+    "graphql": "^16.6.0",
+    "socket.io": "^4.5.4",
+    "sqlite3": "^5.1.4",
+    "type-graphql": "^1.1.1",
+    "typeorm": "0.2.45"
+  }
+}

@@ -109,7 +109,7 @@ func RejectParticapant(c *gin.Context) {
 	groupsPendingParticapantsJson, _ := json.Marshal(pendingParticapants)
 	initializers.DB.Model(&models.Group{}).Where("id = ?", group.ID).Update("pending_particapants", groupsPendingParticapantsJson)
 
-	realtime.UserGotRejected(group.ID, userPart.ID)
+	realtime.UserGotRejected(group.GroupID, userPart.ID)
 
 	c.JSON(http.StatusOK, gin.H{
 		"message": "Success.",
@@ -213,7 +213,7 @@ func KickParticapant(c *gin.Context) {
 	groupsParticapantsJson, _ := json.Marshal(particapants)
 	initializers.DB.Model(&models.Group{}).Where("id = ?", group.ID).Update("particapants", groupsParticapantsJson)
 
-	realtime.UserKickedOut(group.ID, userPart.ID)
+	go realtime.UserKickedOut(group.GroupID, userPart.ID)
 
 	c.JSON(http.StatusOK, gin.H{
 		"message": "Success.",
@@ -322,7 +322,7 @@ func AcceptParticapant(c *gin.Context) {
 	usersJson, _ := json.Marshal(users)
 	initializers.DB.Model(&models.Group{}).Where("id = ?", group.ID).Update("particapants", usersJson)
 
-	realtime.UserGotAccepted(group.ID, userPart.ID)
+	realtime.UserGotAccepted(group.GroupID, userPart.ID, group.OwnerName, group.OthersCanAdd)
 
 	c.JSON(http.StatusOK, gin.H{
 		"message": "Success.",

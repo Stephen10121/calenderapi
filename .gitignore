@@ -3,3 +3,5 @@
 *.exe
 *.exe~
 passwords.txt
+**/node_modules
+**/.env

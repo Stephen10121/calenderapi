@@ -13,6 +13,7 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	expo "github.com/oliveroneill/exponent-server-sdk-golang/sdk"
 	"github.com/stephen10121/calenderapi/functions"
 	"github.com/stephen10121/calenderapi/initializers"
 	"github.com/stephen10121/calenderapi/models"
@@ -288,8 +289,50 @@ func JoinGroup(c *gin.Context) {
 	pendingParticapantSliceJson, _ := json.Marshal(pendingParticapantSlice)
 	initializers.DB.Model(&models.Group{}).Where("id = ?", group.ID).Update("pending_particapants", pendingParticapantSliceJson)
 
-	messageToOwner := user.FirstName + " " + user.LastName + " wants to join your group."
-	realtime.NotifyGroupOwner(group.ID, "Pending New User", messageToOwner)
+	var ownerSend models.User
+	initializers.DB.First(&ownerSend, "id = ?", group.Owner)
+
+	if len(ownerSend.NotificationToken) != 0 {
+		// To check the token is valid
+		pushToken, err := expo.NewExponentPushToken(ownerSend.NotificationToken)
+		if err != nil {
+			c.JSON(http.StatusOK, gin.H{
+				"message":   "Success. Now wait for the group owner to accept the join request.",
+				"groupName": group.Name,
+			})
+			return
+		}
+
+		// Create a new Expo SDK client
+		client := expo.NewPushClient(nil)
+
+		// Publish message
+		response, err := client.Publish(
+			&expo.PushMessage{
+				To:       []expo.ExponentPushToken{pushToken},
+				Body:     user.FullName + " wants to join your group.",
+				Data:     map[string]string{"withSome": "data"},
+				Sound:    "default",
+				Title:    "New Join Request for " + group.Name,
+				Priority: expo.HighPriority,
+			},
+		)
+
+		// Check errors
+		if err != nil {
+			c.JSON(http.StatusOK, gin.H{
+				"message":   "Success. Now wait for the group owner to accept the join request.",
+				"groupName": group.Name,
+			})
+			return
+		}
+
+		// Validate responses
+		if response.ValidateResponse() != nil {
+			fmt.Println(response.PushMessage.To, "failed")
+		}
+	}
+	realtime.UserJoiningGroup(group.GroupID, user.FullName, group.Owner)
 
 	c.JSON(http.StatusOK, gin.H{
 		"message":   "Success. Now wait for the group owner to accept the join request.",
@@ -433,7 +476,7 @@ func LeaveGroup(c *gin.Context) {
 		initializers.DB.Model(&models.Group{}).Where("id = ?", group.ID).Update("owner_email", userInPart.Email)
 		initializers.DB.Model(&models.Group{}).Where("id = ?", group.ID).Update("owner_name", userInPart.FullName)
 
-		realtime.UserLeftTransfered(group.ID, user.ID, userInPart.ID)
+		realtime.UserLeftTransfered(group.GroupID, string(particapantsJson), userInPart.FullName)
 
 		c.JSON(http.StatusOK, gin.H{
 			"message": "Success.",
@@ -641,7 +684,7 @@ func RemoveGroup(c *gin.Context) {
 
 	initializers.DB.Delete(&models.Group{}, group.ID)
 
-	realtime.GroupDeleted(group.ID)
+	go realtime.GroupDeleted(group.GroupID, groupParticapants, groupPendingParticapants)
 
 	c.JSON(http.StatusOK, gin.H{
 		"message": "Success.",

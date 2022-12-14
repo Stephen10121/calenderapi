@@ -16,7 +16,7 @@ import (
 func RequireAuth(c *gin.Context) {
 	reqToken := c.Request.Header.Get("Authorization")
 	splitToken := strings.Split(reqToken, "Bearer ")
-	fmt.Println(reqToken)
+
 	if len(splitToken) < 2 {
 		c.AbortWithStatus(http.StatusUnauthorized)
 		return
@@ -60,6 +60,7 @@ func RequireAuth(c *gin.Context) {
 			c.AbortWithStatus(http.StatusUnauthorized)
 			return
 		}
+		c.Set("token", tokenString)
 		c.Set("user", user)
 		c.Next()
 	} else {

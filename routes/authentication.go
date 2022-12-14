@@ -12,17 +12,50 @@ import (
 	"github.com/golang-jwt/jwt/v4"
 	"github.com/stephen10121/calenderapi/initializers"
 	"github.com/stephen10121/calenderapi/models"
+	"github.com/stephen10121/calenderapi/realtime"
 )
 
 func Validate(c *gin.Context) {
 	user2, _ := c.Get("user")
 	user := user2.(models.User)
+	token2, _ := c.Get("token")
+	token := token2.(string)
+
+	go realtime.UserLoggedIn(token, user.ID)
 
 	c.JSON(http.StatusOK, gin.H{
 		"error": "",
 		"data": gin.H{
 			"userData": user,
 		},
+	})
+}
+
+func NotificationTokenAdd(c *gin.Context) {
+	var body struct {
+		Token string `json:"token"`
+	}
+
+	if c.Bind(&body) != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "Failed to read body",
+		})
+		return
+	}
+
+	if body.Token == "" {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "Failed to read body",
+		})
+		return
+	}
+
+	user2, _ := c.Get("user")
+	user := user2.(models.User)
+	initializers.DB.Model(&models.User{}).Where("id = ?", user.ID).Update("notification_token", body.Token)
+
+	c.JSON(http.StatusOK, gin.H{
+		"error": "",
 	})
 }
 
@@ -129,6 +162,9 @@ func GoogleLogin(c *gin.Context) {
 			})
 			return
 		}
+
+		go realtime.UserLoggedIn(tokenString, user.ID)
+
 		c.JSON(http.StatusOK, gin.H{
 			"error": "",
 			"data": gin.H{
@@ -176,6 +212,9 @@ func GoogleLogin(c *gin.Context) {
 		})
 		return
 	}
+
+	go realtime.UserLoggedIn(tokenString, user.ID)
+
 	c.JSON(http.StatusOK, gin.H{
 		"error": "",
 		"data": gin.H{
