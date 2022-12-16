@@ -350,6 +350,7 @@ type groupData struct {
 	GroupId      string `json:"groupId"`
 	GroupName    string `json:"groupName"`
 	GroupOwner   string `json:"groupOwner"`
+	YouOwn       bool   `json:"youOwn"`
 	OthersCanAdd bool   `json:"othersCanAdd"`
 }
 
@@ -380,7 +381,11 @@ func GetMyGroups(c *gin.Context) {
 		if group.ID == 0 {
 			continue
 		}
-		usersCurrentGroupsJson = append(usersCurrentGroupsJson, groupData{GroupId: group.GroupID, GroupName: group.Name, OthersCanAdd: group.OthersCanAdd, GroupOwner: group.OwnerName})
+		var iown = false
+		if group.Owner == user.ID {
+			iown = true
+		}
+		usersCurrentGroupsJson = append(usersCurrentGroupsJson, groupData{GroupId: group.GroupID, GroupName: group.Name, OthersCanAdd: group.OthersCanAdd, GroupOwner: group.OwnerName, YouOwn: iown})
 	}
 
 	c.JSON(http.StatusOK, gin.H{
