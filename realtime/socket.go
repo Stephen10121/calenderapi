@@ -8,6 +8,8 @@ import (
 	"strconv"
 )
 
+var endpointOfficial string = "https://socket.gruzservices.com"
+
 func NotifyPeople(groupId uint, title string, message string) {
 	fmt.Print("Notification: ")
 	fmt.Print(title, " ")
@@ -31,7 +33,7 @@ func UserKickedOut(groupID string, userId uint) {
 	fmt.Print(" joined ")
 	fmt.Println(groupID)
 	userIdString := string(strconv.FormatUint(uint64(userId), 10))
-	endpoint := "http://192.168.0.24:4000/particapantDeleted?groupId=" + url.QueryEscape(groupID) + "&userId=" + url.QueryEscape(userIdString)
+	endpoint := endpointOfficial + "/particapantDeleted?groupId=" + url.QueryEscape(groupID) + "&userId=" + url.QueryEscape(userIdString)
 	fmt.Println(endpoint)
 	req, err := http.NewRequest(http.MethodGet, endpoint, nil)
 	req.Header.Add("Authorization", "Bearer secretKey")
@@ -52,7 +54,7 @@ func UserKickedOut(groupID string, userId uint) {
 
 func UserJoiningGroup(groupId string, newUser string, ownerId uint) {
 	ownerToString := string(strconv.FormatUint(uint64(ownerId), 10))
-	endpoint := "http://192.168.0.24:4000/newPendingUser?groupId=" + url.QueryEscape(groupId) + "&newUser=" + url.QueryEscape(newUser) + "&ownerId=" + url.QueryEscape(string(ownerToString))
+	endpoint := endpointOfficial + "/newPendingUser?groupId=" + url.QueryEscape(groupId) + "&newUser=" + url.QueryEscape(newUser) + "&ownerId=" + url.QueryEscape(string(ownerToString))
 	fmt.Println(endpoint)
 	req, err := http.NewRequest(http.MethodGet, endpoint, nil)
 	req.Header.Add("Authorization", "Bearer secretKey")
@@ -82,7 +84,7 @@ func UserGotAccepted(groupID string, userId uint, owner string, othersCanAdd boo
 		othersCanAdd2 = "0"
 	}
 	userIdString := string(strconv.FormatUint(uint64(userId), 10))
-	endpoint := "http://192.168.0.24:4000/groupAccepted?groupId=" + url.QueryEscape(groupID) + "&userId=" + url.QueryEscape(userIdString) + "&owner=" + url.QueryEscape(owner) + "&othersCanAdd=" + othersCanAdd2
+	endpoint := endpointOfficial + "/groupAccepted?groupId=" + url.QueryEscape(groupID) + "&userId=" + url.QueryEscape(userIdString) + "&owner=" + url.QueryEscape(owner) + "&othersCanAdd=" + othersCanAdd2
 	fmt.Println(endpoint)
 	req, err := http.NewRequest(http.MethodGet, endpoint, nil)
 	req.Header.Add("Authorization", "Bearer secretKey")
@@ -106,7 +108,7 @@ func UserGotRejected(groupID string, userId uint) {
 	fmt.Print(" got rejected from ")
 	fmt.Println(groupID)
 	userIdString := string(strconv.FormatUint(uint64(userId), 10))
-	endpoint := "http://192.168.0.24:4000/particapantDeletedPending?groupId=" + url.QueryEscape(groupID) + "&userId=" + url.QueryEscape(userIdString)
+	endpoint := endpointOfficial + "/particapantDeletedPending?groupId=" + url.QueryEscape(groupID) + "&userId=" + url.QueryEscape(userIdString)
 	fmt.Println(endpoint)
 	req, err := http.NewRequest(http.MethodGet, endpoint, nil)
 	req.Header.Add("Authorization", "Bearer secretKey")
@@ -136,7 +138,7 @@ func UserLeftTransfered(groupID string, particapants string, newOwner string) {
 	fmt.Print(groupID)
 	fmt.Print(" and transfered ownership to ")
 	fmt.Println(newOwner)
-	endpoint := "http://192.168.0.24:4000/userLeftTransfered?groupId=" + url.QueryEscape(groupID) + "&particapants=" + url.QueryEscape(particapants) + "&newOwner=" + url.QueryEscape(newOwner)
+	endpoint := endpointOfficial + "/userLeftTransfered?groupId=" + url.QueryEscape(groupID) + "&particapants=" + url.QueryEscape(particapants) + "&newOwner=" + url.QueryEscape(newOwner)
 	fmt.Println(endpoint)
 	req, err := http.NewRequest(http.MethodGet, endpoint, nil)
 	req.Header.Add("Authorization", "Bearer secretKey")
@@ -166,7 +168,7 @@ func GroupDeleted(groupID string, particapants []uint, pendingParticapants []uin
 	fmt.Println(groupID)
 	particapantsJson, _ := json.Marshal(particapants)
 	pendingParticapantsJson, _ := json.Marshal(pendingParticapants)
-	req, err := http.NewRequest(http.MethodGet, "http://192.168.0.24:4000/groupDeleted?groupId="+url.QueryEscape(groupID)+"&particapants="+string(particapantsJson)+"&pendingParticapants="+string(pendingParticapantsJson), nil)
+	req, err := http.NewRequest(http.MethodGet, endpointOfficial+"/groupDeleted?groupId="+url.QueryEscape(groupID)+"&particapants="+string(particapantsJson)+"&pendingParticapants="+string(pendingParticapantsJson), nil)
 	req.Header.Add("Authorization", "Bearer secretKey")
 
 	if err != nil {
@@ -188,7 +190,7 @@ func UserLoggedIn(token string, userId uint) {
 	fmt.Print(token)
 	fmt.Print(" id: ")
 	fmt.Println(userId)
-	req, err := http.NewRequest(http.MethodGet, "http://192.168.0.24:4000/newConnection?token="+token+"&id="+string(strconv.FormatUint(uint64(userId), 10)), nil)
+	req, err := http.NewRequest(http.MethodGet, endpointOfficial+"/newConnection?token="+token+"&id="+string(strconv.FormatUint(uint64(userId), 10)), nil)
 	req.Header.Add("Authorization", "Bearer secretKey")
 
 	if err != nil {
