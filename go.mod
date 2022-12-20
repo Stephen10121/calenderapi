@@ -1,6 +1,6 @@
 module github.com/stephen10121/calenderapi
 
-go 1.19
+go 1.16
 
 require github.com/googollee/go-engine.io v1.4.2
 
