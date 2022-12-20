@@ -2,7 +2,6 @@ package routes
 
 import (
 	"encoding/json"
-	"fmt"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -12,17 +11,29 @@ import (
 	"github.com/stephen10121/calenderapi/realtime"
 )
 
+type TimeType struct {
+	Hour   int8 `json:"hour"`
+	Minute int8 `json:"minute"`
+	Pm     bool `json:"pm"`
+}
+
+type DateType struct {
+	Month int8  `json:"month"`
+	Day   int8  `json:"day"`
+	Year  int16 `json:"year"`
+}
+
 func AddJob(c *gin.Context) {
 	var body struct {
-		Client        string `json:"client"`  //optional
-		Address       string `json:"address"` //optional
-		Date          string `json:"date"`
-		Time          string `json:"time"`
-		JobTitle      string `json:"jobTitle"`
-		Group         string `json:"group"`
-		Notifications bool   `json:"notifications"`
-		Instuctions   string `json:"instructions"` //optional
-		Positions     int8   `json:"positions"`
+		Client        string   `json:"client"`  //optional
+		Address       string   `json:"address"` //optional
+		Date          DateType `json:"date"`
+		Time          TimeType `json:"time"`
+		JobTitle      string   `json:"jobTitle"`
+		Group         string   `json:"group"`
+		Notifications bool     `json:"notifications"`
+		Instuctions   string   `json:"instructions"` //optional
+		Positions     int8     `json:"positions"`
 	}
 
 	if c.Bind(&body) != nil {
@@ -32,9 +43,23 @@ func AddJob(c *gin.Context) {
 		return
 	}
 
-	if body.Time == "" || body.Date == "" || body.JobTitle == "" || body.Group == "" || body.Positions == 0 {
+	if body.JobTitle == "" || body.Group == "" || body.Positions == 0 {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"error": "Missing Parameters",
+		})
+		return
+	}
+
+	if body.Date.Month == 0 || body.Date.Day == 0 || body.Date.Year == 0 {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "The Date is invalid.",
+		})
+		return
+	}
+
+	if body.Time.Hour == 0 || body.Time.Minute == 0 {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "The Time is invalid.",
 		})
 		return
 	}
@@ -54,19 +79,22 @@ func AddJob(c *gin.Context) {
 
 	var groupParticapants []uint
 	json.Unmarshal([]byte(group.Particapants), &groupParticapants)
-	if functions.UintContains(groupParticapants, user.ID) != true || group.OthersCanAdd != true {
-		c.JSON(http.StatusMethodNotAllowed, gin.H{
-			"error": "User not allowed to add job",
-		})
-		return
+
+	if user.ID != group.Owner {
+		if functions.UintContains(groupParticapants, user.ID) != true || group.OthersCanAdd != true {
+			c.JSON(http.StatusMethodNotAllowed, gin.H{
+				"error": "User not allowed to add job",
+			})
+			return
+		}
 	}
 
-	job := models.Job{Client: body.Client, Address: body.Address, Volunteer: "", Date: body.Date, Time: body.Time, JobTitle: body.JobTitle, GroupId: group.GroupID, Instuctions: body.Instuctions, GroupName: group.Name, Issuer: user.ID, IssuerName: user.FirstName + " " + user.LastName, Taken: false, Positions: body.Positions}
+	job := models.Job{Client: body.Client, Address: body.Address, Volunteer: "", Month: body.Date.Month, Day: body.Date.Day, Year: body.Date.Year, Hour: body.Time.Hour, Minute: body.Time.Minute, Pm: body.Time.Pm, JobTitle: body.JobTitle, GroupId: group.GroupID, Instuctions: body.Instuctions, GroupName: group.Name, Issuer: user.ID, IssuerName: user.FirstName + " " + user.LastName, Taken: false, Positions: body.Positions}
 	result := initializers.DB.Create(&job)
 
 	if result.Error != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "Failed to create user",
+			"error": "Failed to create job.",
 		})
 		return
 	}
@@ -94,7 +122,7 @@ func GetJobs(c *gin.Context) {
 		return
 	}
 
-	if body.Group == "" {
+	if len(body.Group) == 0 {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"error": "Missing Parameters",
 		})
@@ -123,7 +151,6 @@ func GetJobs(c *gin.Context) {
 		return
 	}
 
-	fmt.Println("c", body.Group)
 	var jobs []models.Job
 	initializers.DB.Where("group_id = ?", body.Group).Find(&jobs)
 
