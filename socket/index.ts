@@ -4,20 +4,14 @@ import "reflect-metadata";
 import express from "express";
 import { createConnection } from "typeorm";
 import http from "http";
+import { Server } from "socket.io";
+import cors from "cors";
 
 const PORT = process.env.PORT || 4000;
 const app = express();
 const server = http.createServer(app);
-const io = require("socket.io")(server, {
-    cors: {
-        origin: '*',
-        methods: ['GET', 'POST'],
-        allowEIO3: true
-    }
-});
 
-const idToSocket: any = {
-}
+const idToSocket: any = {}
 const socketToId:any = {}
 
 // Allow shared fonts.
@@ -28,7 +22,14 @@ app.use((_req, res, next) => {
 });
 
 app.set('view engine', 'ejs');
-app.use(express.json(), express.urlencoded({ extended: true }));
+app.use(express.json(), express.urlencoded({ extended: true }), cors());
+
+const io = new Server(server, {
+    cors: {
+        origin: '*',
+        methods: ['GET', 'POST']
+    }
+});
 
 app.get("/", (_req, res) => {
     res.json({msg: "Hello World"})
