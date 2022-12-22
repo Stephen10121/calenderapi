@@ -12,9 +12,9 @@ import (
 )
 
 type TimeType struct {
-	Hour   int8 `json:"hour"`
-	Minute int8 `json:"minute"`
-	Pm     bool `json:"pm"`
+	Hour   int8   `json:"hour"`
+	Minute int8   `json:"minute"`
+	Pm     string `json:"pm"`
 }
 
 type DateType struct {
@@ -89,7 +89,12 @@ func AddJob(c *gin.Context) {
 		}
 	}
 
-	job := models.Job{Client: body.Client, Address: body.Address, Volunteer: "", Month: body.Date.Month, Day: body.Date.Day, Year: body.Date.Year, Hour: body.Time.Hour, Minute: body.Time.Minute, Pm: body.Time.Pm, JobTitle: body.JobTitle, GroupId: group.GroupID, Instuctions: body.Instuctions, GroupName: group.Name, Issuer: user.ID, IssuerName: user.FirstName + " " + user.LastName, Taken: false, Positions: body.Positions}
+	var newPm = false
+	if body.Time.Pm == "PM" {
+		newPm = true
+	}
+
+	job := models.Job{Client: body.Client, Address: body.Address, Volunteer: "", Month: body.Date.Month, Day: body.Date.Day, Year: body.Date.Year, Hour: body.Time.Hour, Minute: body.Time.Minute, Pm: newPm, JobTitle: body.JobTitle, GroupId: group.GroupID, Instuctions: body.Instuctions, GroupName: group.Name, Issuer: user.ID, IssuerName: user.FirstName + " " + user.LastName, Taken: false, Positions: body.Positions}
 	result := initializers.DB.Create(&job)
 
 	if result.Error != nil {
