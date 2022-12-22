@@ -94,7 +94,6 @@ func AddJob(c *gin.Context) {
 		newPm = true
 	}
 	var volunteers []uint
-	volunteers = append(volunteers, 2) // REMOVE THIS AFTER TEST
 	volunteersJSON, _ := json.Marshal(volunteers)
 	job := models.Job{Client: body.Client, Address: body.Address, Volunteer: string(volunteersJSON), Month: body.Date.Month, Day: body.Date.Day, Year: body.Date.Year, Hour: body.Time.Hour, Minute: body.Time.Minute, Pm: newPm, JobTitle: body.JobTitle, GroupId: group.GroupID, Instuctions: body.Instuctions, GroupName: group.Name, Issuer: user.ID, IssuerName: user.FirstName + " " + user.LastName, Taken: false, Positions: body.Positions}
 	result := initializers.DB.Create(&job)
