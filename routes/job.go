@@ -93,8 +93,9 @@ func AddJob(c *gin.Context) {
 	if body.Time.Pm == "PM" {
 		newPm = true
 	}
-
-	job := models.Job{Client: body.Client, Address: body.Address, Volunteer: "", Month: body.Date.Month, Day: body.Date.Day, Year: body.Date.Year, Hour: body.Time.Hour, Minute: body.Time.Minute, Pm: newPm, JobTitle: body.JobTitle, GroupId: group.GroupID, Instuctions: body.Instuctions, GroupName: group.Name, Issuer: user.ID, IssuerName: user.FirstName + " " + user.LastName, Taken: false, Positions: body.Positions}
+	var volunteers []uint
+	volunteersJSON, _ := json.Marshal(volunteers)
+	job := models.Job{Client: body.Client, Address: body.Address, Volunteer: string(volunteersJSON), Month: body.Date.Month, Day: body.Date.Day, Year: body.Date.Year, Hour: body.Time.Hour, Minute: body.Time.Minute, Pm: newPm, JobTitle: body.JobTitle, GroupId: group.GroupID, Instuctions: body.Instuctions, GroupName: group.Name, Issuer: user.ID, IssuerName: user.FirstName + " " + user.LastName, Taken: false, Positions: body.Positions}
 	result := initializers.DB.Create(&job)
 
 	if result.Error != nil {
