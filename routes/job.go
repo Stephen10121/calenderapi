@@ -29,11 +29,6 @@ type JobVolunteers struct {
 	FullName  string `json:"fullName"`
 }
 
-type JobVolunteersPublic struct {
-	Positions int8   `json:"positions"`
-	FullName  string `json:"fullName"`
-}
-
 func AddJob(c *gin.Context) {
 	var body struct {
 		Client        string   `json:"client"`  //optional
@@ -224,16 +219,11 @@ func JobInfo(c *gin.Context) {
 	var jobVolunteers []JobVolunteers
 	json.Unmarshal([]byte(job.Volunteer), &jobVolunteers)
 
-	var jobVolunteersPublic []JobVolunteersPublic
-	for _, s := range jobVolunteers {
-		jobVolunteersPublic = append(jobVolunteersPublic, JobVolunteersPublic{Positions: s.Positions, FullName: s.FullName})
-	}
-
 	c.JSON(http.StatusOK, gin.H{
 		"created":     job.CreatedAt,
 		"client":      job.Client,
 		"address":     job.Address,
-		"volunteer":   jobVolunteersPublic,
+		"volunteer":   jobVolunteers,
 		"month":       job.Month,
 		"day":         job.Day,
 		"year":        job.Year,
@@ -309,6 +299,10 @@ func AcceptJob(c *gin.Context) {
 			"error": "Not enough positions.",
 		})
 		return
+	}
+
+	if positionsAlreadyTaken+int16(body.Positions) == int16(job.Positions) {
+		initializers.DB.Model(&models.Job{}).Where("id = ?", job.ID).Update("taken", true)
 	}
 
 	jobVolunteers = append(jobVolunteers, JobVolunteers{Positions: body.Positions, UserId: user.ID, FullName: user.FullName})
