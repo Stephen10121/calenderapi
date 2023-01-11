@@ -23,6 +23,17 @@ type DateType struct {
 	Year  int16 `json:"year"`
 }
 
+type JobVolunteers struct {
+	UserId    uint   `json:"userId"`
+	Positions int8   `json:"positions"`
+	FullName  string `json:"fullName"`
+}
+
+type JobVolunteersPublic struct {
+	Positions int8   `json:"positions"`
+	FullName  string `json:"fullName"`
+}
+
 func AddJob(c *gin.Context) {
 	var body struct {
 		Client        string   `json:"client"`  //optional
@@ -164,4 +175,78 @@ func GetJobs(c *gin.Context) {
 		"jobs": jobs,
 	})
 	return
+}
+
+func JobInfo(c *gin.Context) {
+	var body struct {
+		JobId uint `json:"jobId"`
+	}
+
+	if c.Bind(&body) != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "Failed to read body",
+		})
+		return
+	}
+
+	if body.JobId == 0 {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "Missing Parameters",
+		})
+		return
+	}
+
+	var job models.Job
+	initializers.DB.First(&job, "id = ?", body.JobId)
+
+	if job.ID == 0 {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "Group doesn't exist",
+		})
+		return
+	}
+
+	var group models.Group
+	initializers.DB.First(&group, "group_id = ?", job.GroupId)
+
+	user2, _ := c.Get("user")
+	user := user2.(models.User)
+
+	var groupParticapants []uint
+	json.Unmarshal([]byte(group.Particapants), &groupParticapants)
+	if functions.UintContains(groupParticapants, user.ID) != true {
+		c.JSON(http.StatusMethodNotAllowed, gin.H{
+			"error": "User not part of group",
+		})
+		return
+	}
+
+	var jobVolunteers []JobVolunteers
+	json.Unmarshal([]byte(job.Volunteer), &jobVolunteers)
+
+	var jobVolunteersPublic []JobVolunteersPublic
+	for _, s := range jobVolunteers {
+		jobVolunteersPublic = append(jobVolunteersPublic, JobVolunteersPublic{Positions: s.Positions, FullName: s.FullName})
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"created":     job.CreatedAt,
+		"client":      job.Client,
+		"address":     job.Address,
+		"volunteer":   jobVolunteersPublic,
+		"month":       job.Month,
+		"day":         job.Day,
+		"year":        job.Year,
+		"hour":        job.Hour,
+		"minute":      job.Minute,
+		"pm":          job.Pm,
+		"jobTitle":    job.JobTitle,
+		"groupId":     job.GroupId,
+		"instuctions": job.Instuctions,
+		"groupName":   job.GroupName,
+		"issuer":      job.Issuer,
+		"issuerName":  job.IssuerName,
+		"taken":       job.Taken,
+		"positions":   job.Positions,
+	})
 }

@@ -8,7 +8,7 @@ type Job struct {
 	gorm.Model
 	Client      string `json:"client"`
 	Address     string `json:"address"`
-	Volunteer   string `json:"volunteer"` // [{userId: 1, Positions: 2}]
+	Volunteer   string `json:"volunteer"` // [{userId: 1, Positions: 2, FullName: Jeff Jeffins}]
 	Month       int8   `json:"month"`
 	Day         int8   `json:"day"`
 	Year        int16  `json:"year"`
