@@ -250,3 +250,72 @@ func JobInfo(c *gin.Context) {
 		"positions":   job.Positions,
 	})
 }
+
+func AcceptJob(c *gin.Context) {
+	var body struct {
+		JobId     uint `json:"jobId"`
+		Positions int8 `json:"positions"`
+	}
+
+	if c.Bind(&body) != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "Failed to read body",
+		})
+		return
+	}
+
+	if body.JobId == 0 || body.Positions == 0 {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "Missing Parameters",
+		})
+		return
+	}
+
+	var job models.Job
+	initializers.DB.First(&job, "id = ?", body.JobId)
+
+	if job.ID == 0 {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "Group doesn't exist",
+		})
+		return
+	}
+
+	var group models.Group
+	initializers.DB.First(&group, "group_id = ?", job.GroupId)
+
+	user2, _ := c.Get("user")
+	user := user2.(models.User)
+
+	var groupParticapants []uint
+	json.Unmarshal([]byte(group.Particapants), &groupParticapants)
+	if functions.UintContains(groupParticapants, user.ID) != true {
+		c.JSON(http.StatusMethodNotAllowed, gin.H{
+			"error": "User not part of group",
+		})
+		return
+	}
+
+	var jobVolunteers []JobVolunteers
+	json.Unmarshal([]byte(job.Volunteer), &jobVolunteers)
+	var positionsAlreadyTaken int16
+
+	for _, s := range jobVolunteers {
+		positionsAlreadyTaken = positionsAlreadyTaken + int16(s.Positions)
+	}
+
+	if positionsAlreadyTaken+int16(body.Positions) > int16(job.Positions) {
+		c.JSON(http.StatusMethodNotAllowed, gin.H{
+			"error": "Not enough positions.",
+		})
+		return
+	}
+
+	jobVolunteers = append(jobVolunteers, JobVolunteers{Positions: body.Positions, UserId: user.ID, FullName: user.FullName})
+	jobVolunteersJson, _ := json.Marshal(jobVolunteers)
+	initializers.DB.Model(&models.Job{}).Where("id = ?", job.ID).Update("volunteer", jobVolunteersJson)
+
+	c.JSON(http.StatusOK, gin.H{
+		"message": "Added new Volunteer.",
+	})
+}
