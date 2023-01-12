@@ -216,29 +216,7 @@ func JobInfo(c *gin.Context) {
 		return
 	}
 
-	var jobVolunteers []JobVolunteers
-	json.Unmarshal([]byte(job.Volunteer), &jobVolunteers)
-
-	c.JSON(http.StatusOK, gin.H{
-		"created":     job.CreatedAt,
-		"client":      job.Client,
-		"address":     job.Address,
-		"volunteer":   jobVolunteers,
-		"month":       job.Month,
-		"day":         job.Day,
-		"year":        job.Year,
-		"hour":        job.Hour,
-		"minute":      job.Minute,
-		"pm":          job.Pm,
-		"jobTitle":    job.JobTitle,
-		"groupId":     job.GroupId,
-		"instuctions": job.Instuctions,
-		"groupName":   job.GroupName,
-		"issuer":      job.Issuer,
-		"issuerName":  job.IssuerName,
-		"taken":       job.Taken,
-		"positions":   job.Positions,
-	})
+	c.JSON(http.StatusOK, job)
 }
 
 func AcceptJob(c *gin.Context) {
