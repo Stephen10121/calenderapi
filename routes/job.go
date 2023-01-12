@@ -284,17 +284,23 @@ func AcceptJob(c *gin.Context) {
 	}
 
 	var jobVolunteers2 []JobVolunteers
+	alreadyAdded := false
 	for _, s := range jobVolunteers {
 		if s.UserId == user.ID {
 			jobVolunteers2 = append(jobVolunteers2, JobVolunteers{FullName: s.FullName, Positions: s.Positions + body.Positions, UserId: s.UserId})
+			alreadyAdded = true
 		} else {
 			jobVolunteers2 = append(jobVolunteers2, s)
 		}
+	}
+	if alreadyAdded == false {
+		jobVolunteers2 = append(jobVolunteers2, JobVolunteers{FullName: user.FullName, Positions: body.Positions, UserId: user.ID})
 	}
 	jobVolunteersJson, _ := json.Marshal(jobVolunteers2)
 	initializers.DB.Model(&models.Job{}).Where("id = ?", job.ID).Update("volunteer", jobVolunteersJson)
 
 	c.JSON(http.StatusOK, gin.H{
 		"message": "Added new Volunteer.",
+		"job":     job,
 	})
 }
