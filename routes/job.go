@@ -305,8 +305,15 @@ func AcceptJob(c *gin.Context) {
 		initializers.DB.Model(&models.Job{}).Where("id = ?", job.ID).Update("taken", true)
 	}
 
-	jobVolunteers = append(jobVolunteers, JobVolunteers{Positions: body.Positions, UserId: user.ID, FullName: user.FullName})
-	jobVolunteersJson, _ := json.Marshal(jobVolunteers)
+	var jobVolunteers2 []JobVolunteers
+	for _, s := range jobVolunteers {
+		if s.UserId == user.ID {
+			jobVolunteers2 = append(jobVolunteers2, JobVolunteers{FullName: s.FullName, Positions: s.Positions + body.Positions, UserId: s.UserId})
+		} else {
+			jobVolunteers2 = append(jobVolunteers2, s)
+		}
+	}
+	jobVolunteersJson, _ := json.Marshal(jobVolunteers2)
 	initializers.DB.Model(&models.Job{}).Where("id = ?", job.ID).Update("volunteer", jobVolunteersJson)
 
 	c.JSON(http.StatusOK, gin.H{
