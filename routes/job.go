@@ -239,15 +239,11 @@ func GetJobsByMonthYear(c *gin.Context) {
 		return
 	}
 
-	fmt.Println(body.Month, body.Year)
-
 	user2, _ := c.Get("user")
 	user := user2.(models.User)
 
 	var userGroups []uint
 	json.Unmarshal([]byte(user.Groups), &userGroups)
-
-	fmt.Println(userGroups)
 
 	var jobs []models.Job
 	initializers.DB.Where("month = ? AND year = ? AND group_num_id IN ?", body.Month, body.Year, userGroups).Find(&jobs)
