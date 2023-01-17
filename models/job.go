@@ -17,6 +17,7 @@ type Job struct {
 	Pm          bool   `json:"pm"`
 	JobTitle    string `json:"jobTitle"`
 	GroupId     string `json:"groupId"`
+	GroupNumId  uint   `json:"groupNumId"`
 	Instuctions string `json:"instructions"`
 	GroupName   string `json:"groupName"`
 	Issuer      uint   `json:"issuer"`

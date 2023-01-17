@@ -103,7 +103,7 @@ func AddJob(c *gin.Context) {
 	}
 	var volunteers []uint
 	volunteersJSON, _ := json.Marshal(volunteers)
-	job := models.Job{Client: body.Client, Address: body.Address, Volunteer: string(volunteersJSON), Month: body.Date.Month, Day: body.Date.Day, Year: body.Date.Year, Hour: body.Time.Hour, Minute: body.Time.Minute, Pm: newPm, JobTitle: body.JobTitle, GroupId: group.GroupID, Instuctions: body.Instuctions, GroupName: group.Name, Issuer: user.ID, IssuerName: user.FirstName + " " + user.LastName, Taken: false, Positions: body.Positions}
+	job := models.Job{Client: body.Client, Address: body.Address, Volunteer: string(volunteersJSON), Month: body.Date.Month, Day: body.Date.Day, Year: body.Date.Year, Hour: body.Time.Hour, Minute: body.Time.Minute, Pm: newPm, JobTitle: body.JobTitle, GroupId: group.GroupID, GroupNumId: group.ID, Instuctions: body.Instuctions, GroupName: group.Name, Issuer: user.ID, IssuerName: user.FirstName + " " + user.LastName, Taken: false, Positions: body.Positions}
 	result := initializers.DB.Create(&job)
 
 	if result.Error != nil {
@@ -239,14 +239,18 @@ func GetJobsByMonthYear(c *gin.Context) {
 		return
 	}
 
+	fmt.Println(body.Month, body.Year)
+
 	user2, _ := c.Get("user")
 	user := user2.(models.User)
 
 	var userGroups []uint
 	json.Unmarshal([]byte(user.Groups), &userGroups)
 
+	fmt.Println(userGroups)
+
 	var jobs []models.Job
-	initializers.DB.Where("month = ? AND year = ?", body.Month, body.Year).Find(&jobs, userGroups)
+	initializers.DB.Where("month = ? AND year = ? AND group_num_id IN ?", body.Month, body.Year, userGroups).Find(&jobs)
 
 	c.JSON(http.StatusOK, gin.H{
 		"jobs": jobs,
