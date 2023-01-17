@@ -219,9 +219,10 @@ func GetJobs(c *gin.Context) {
 	return
 }
 
-func GetJobsByMonth(c *gin.Context) {
+func GetJobsByMonthYear(c *gin.Context) {
 	var body struct {
-		Month int8 `json:"month"`
+		Month int8  `json:"month"`
+		Year  int16 `json:"year"`
 	}
 
 	if c.Bind(&body) != nil {
@@ -231,7 +232,7 @@ func GetJobsByMonth(c *gin.Context) {
 		return
 	}
 
-	if body.Month == 0 {
+	if body.Month == 0 || body.Year == 0 {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"error": "Missing Parameters",
 		})
@@ -245,7 +246,7 @@ func GetJobsByMonth(c *gin.Context) {
 	json.Unmarshal([]byte(user.Groups), &userGroups)
 
 	var jobs []models.Job
-	initializers.DB.Where("month = ?", body.Month).Find(&jobs, userGroups)
+	initializers.DB.Where("month = ? AND year = ?", body.Month, body.Year).Find(&jobs, userGroups)
 
 	c.JSON(http.StatusOK, gin.H{
 		"jobs": jobs,
