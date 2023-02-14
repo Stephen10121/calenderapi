@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"strconv"
 
 	"github.com/gin-gonic/gin"
 	expo "github.com/oliveroneill/exponent-server-sdk-golang/sdk"
@@ -138,7 +139,7 @@ func AddJob(c *gin.Context) {
 					&expo.PushMessage{
 						To:       []expo.ExponentPushToken{pushToken},
 						Body:     user.FullName + " created a job for " + group.Name + ".",
-						Data:     map[string]string{"groupId": group.GroupID, "type": "join"},
+						Data:     map[string]string{"jobId": strconv.FormatUint(uint64(job.ID), 10), "jobTitle": body.JobTitle, "type": "job"},
 						Sound:    "default",
 						Title:    "New job created in " + group.Name + ".",
 						Priority: expo.HighPriority,
