@@ -311,7 +311,7 @@ func JoinGroup(c *gin.Context) {
 			&expo.PushMessage{
 				To:       []expo.ExponentPushToken{pushToken},
 				Body:     user.FullName + " wants to join your group.",
-				Data:     map[string]string{"groupId": group.GroupID, "type": "join", "title": group.Name, "othersCanAdd": "0"},
+				Data:     map[string]string{"groupId": group.GroupID, "type": "join"},
 				Sound:    "default",
 				Title:    "New Join Request for " + group.Name,
 				Priority: expo.HighPriority,
