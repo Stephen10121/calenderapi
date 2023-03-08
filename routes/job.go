@@ -255,6 +255,49 @@ func GetJobsByMonthYear(c *gin.Context) {
 	return
 }
 
+func GetJobsByMonthsYear(c *gin.Context) {
+	var body struct {
+		Months string `json:"months"`
+		Year   int16  `json:"year"`
+	}
+
+	if c.Bind(&body) != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "Failed to read body",
+		})
+		return
+	}
+
+	if len(body.Months) == 0 || body.Year == 0 {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "Missing Parameters",
+		})
+		return
+	}
+
+	var months []int8
+	json.Unmarshal([]byte(body.Months), &months)
+
+	user2, _ := c.Get("user")
+	user := user2.(models.User)
+
+	var userGroups []uint
+	json.Unmarshal([]byte(user.Groups), &userGroups)
+
+	jobArray := make(map[int8][]models.Job)
+
+	for _, s := range months {
+		var jobs []models.Job
+		initializers.DB.Where("month = ? AND year = ? AND group_num_id IN ?", s, body.Year, userGroups).Find(&jobs)
+		jobArray[s] = jobs
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"jobs": jobArray,
+	})
+	return
+}
+
 func JobInfo(c *gin.Context) {
 	var body struct {
 		JobId uint `json:"jobId"`

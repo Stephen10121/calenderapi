@@ -49,6 +49,7 @@ func main() {
 	router.POST("/addJob", middleware.RequireAuth, routes.AddJob)
 	router.POST("/getJobs", middleware.RequireAuth, routes.GetJobs)
 	router.POST("/getAllJobsByMonthYear", middleware.RequireAuth, routes.GetJobsByMonthYear)
+	router.POST("/allJobsByMonthsYear", middleware.RequireAuth, routes.GetJobsByMonthsYear)
 	router.POST("/jobInfo", middleware.RequireAuth, routes.JobInfo)
 	router.POST("/acceptJob", middleware.RequireAuth, routes.AcceptJob)
 	fmt.Println("Running Server on ", os.Getenv("PORT"))
