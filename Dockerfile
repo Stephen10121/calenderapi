@@ -20,8 +20,8 @@ ARG SECRET=ekjwbfkb32kjhbdjknf32jkd3n2erkj
 RUN go build -o ./out/calendarapi .
 
 
-# This container exposes port 8080 to the outside world
+# This container exposes port 9090 to the outside world
 EXPOSE 9090
 
 # Run the binary program produced by `go install`
-CMD ["./out/go-sample-app"]
+CMD ["./out/calendarapi"]

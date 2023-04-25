@@ -20,4 +20,4 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     - name: Build the Docker image
 
-      run: docker build --file Dockerfile .. --tag calendarapi:$(date +%s)
+      run: docker build --file Dockerfile . --tag calendarapi:$(date +%s)
