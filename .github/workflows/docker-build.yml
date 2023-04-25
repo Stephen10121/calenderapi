@@ -1,0 +1,26 @@
+name: Docker Image CI
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+
+  build:
+
+    runs-on: ubuntu-latest
+    env:
+      PROJECT_VERSION: 1.0.0-alpha
+
+    steps:
+    - uses: actions/checkout@v3
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    - name: Build the Docker image
+
+      run: |
+        echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "stephen10121" --password-stdin
+        docker buildx create --use
+        docker buildx build --platform=linux/amd64,linux/arm64 --push -t stephen10121/mqttendpoint:1.0 .
