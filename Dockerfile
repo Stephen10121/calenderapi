@@ -3,7 +3,7 @@
 FROM golang:1.19
 
 # Set destination for COPY
-WORKDIR /app
+WORKDIR /go/src/github.com/stephen10121/calendarapi
 
 # Download Go modules
 COPY go.mod go.sum ./
