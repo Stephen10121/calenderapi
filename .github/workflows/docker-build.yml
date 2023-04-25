@@ -20,7 +20,4 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     - name: Build the Docker image
 
-      run: |
-        echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "stephen10121" --password-stdin
-        docker buildx create --use
-        docker buildx build --platform=linux/amd64,linux/arm64 --push -t stephen10121/mqttendpoint:1.0 .
+      run: docker build . --file Dockerfile --tag calendarapi:$(date +%s)
