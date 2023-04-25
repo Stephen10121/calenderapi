@@ -6,12 +6,12 @@ FROM golang:1.19
 WORKDIR /go/src/github.com/stephen10121/calendarapi
 
 # Download Go modules
-COPY go.mod go.sum ./
+COPY go.mod go.sum /go/src/github.com/stephen10121/calendarapi/
 RUN go mod download
 
 # Copy the source code. Note the slash at the end, as explained in
 # https://docs.docker.com/engine/reference/builder/#copy
-COPY *.go ./
+COPY . /go/src/github.com/stephen10121/calendarapi
 
 # Build
 RUN CGO_ENABLED=0 GOOS=linux go build -o /docker-gs-ping
