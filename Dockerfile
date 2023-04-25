@@ -3,7 +3,11 @@ FROM golang:1.19
 # Set the Current Working Directory inside the container
 WORKDIR $GOPATH/src/github.com/stephen10121/calendarapi
 
-# Copy everything from the current directory to the PWD (Present Working Directory) inside the container
+COPY go.mod .
+COPY go.sum .
+
+RUN go mod download
+
 COPY . .
 
 ARG PORT=9090
@@ -13,10 +17,11 @@ ARG SECRET=ekjwbfkb32kjhbdjknf32jkd3n2erkj
 # RUN go get -d -v ./...
 
 # Install the package
-RUN go install -v ./...
+RUN go build -o ./out/calendarapi .
+
 
 # This container exposes port 8080 to the outside world
 EXPOSE 9090
 
-# Run the executable
-CMD ["go-sample-app"]
+# Run the binary program produced by `go install`
+CMD ["./out/go-sample-app"]
