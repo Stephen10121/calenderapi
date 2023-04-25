@@ -1,30 +1,22 @@
-# syntax=docker/dockerfile:1
-
 FROM golang:1.19
 
-# Set destination for COPY
-WORKDIR /go/src/github.com/stephen10121/calendarapi
+# Set the Current Working Directory inside the container
+WORKDIR $GOPATH/src/github.com/stephen10121/calendarapi
 
-# Download Go modules
-COPY go.mod go.sum /go/src/github.com/stephen10121/calendarapi/
-RUN go mod download
-
-# Copy the source code. Note the slash at the end, as explained in
-# https://docs.docker.com/engine/reference/builder/#copy
-COPY . /go/src/github.com/stephen10121/calendarapi
-
-# Build
-RUN CGO_ENABLED=0 GOOS=linux go build -o /docker-gs-ping
+# Copy everything from the current directory to the PWD (Present Working Directory) inside the container
+COPY . .
 
 ARG PORT=9090
 ARG SECRET=ekjwbfkb32kjhbdjknf32jkd3n2erkj
 
-# Optional:
-# To bind to a TCP port, runtime parameters must be supplied to the docker command.
-# But we can document in the Dockerfile what ports
-# the application is going to listen on by default.
-# https://docs.docker.com/engine/reference/builder/#expose
+# Download all the dependencies
+RUN go get -d -v ./...
+
+# Install the package
+RUN go install -v ./...
+
+# This container exposes port 8080 to the outside world
 EXPOSE 9090
 
-# Run
-CMD ["/docker-gs-ping"]
+# Run the executable
+CMD ["go-sample-app"]
