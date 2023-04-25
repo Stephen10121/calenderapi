@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-	"os"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -13,6 +12,7 @@ import (
 	"github.com/stephen10121/calenderapi/initializers"
 	"github.com/stephen10121/calenderapi/models"
 	"github.com/stephen10121/calenderapi/realtime"
+	"github.com/stephen10121/calenderapi/variables"
 )
 
 func Validate(c *gin.Context) {
@@ -154,7 +154,7 @@ func GoogleLogin(c *gin.Context) {
 			"exp": time.Now().Add(time.Hour * 24 * 30).Unix(),
 		})
 
-		tokenString, err := token.SignedString([]byte(os.Getenv("SECRET")))
+		tokenString, err := token.SignedString([]byte(variables.Secret()))
 
 		if err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{
@@ -204,7 +204,7 @@ func GoogleLogin(c *gin.Context) {
 		"exp": time.Now().Add(time.Hour * 24 * 30).Unix(),
 	})
 
-	tokenString, err := token.SignedString([]byte(os.Getenv("SECRET")))
+	tokenString, err := token.SignedString([]byte(variables.Secret()))
 
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{

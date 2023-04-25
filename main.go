@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"os"
 
 	"github.com/gin-gonic/gin"
 	"github.com/stephen10121/calenderapi/initializers"
@@ -11,7 +10,7 @@ import (
 )
 
 func init() {
-	initializers.LoadEnvVariables()
+	// initializers.LoadEnvVariables()
 	initializers.ConnectDatabase()
 	initializers.SyncDatabase()
 }
@@ -52,6 +51,6 @@ func main() {
 	router.POST("/allJobsByMonthsYear", middleware.RequireAuth, routes.GetJobsByMonthsYear)
 	router.POST("/jobInfo", middleware.RequireAuth, routes.JobInfo)
 	router.POST("/acceptJob", middleware.RequireAuth, routes.AcceptJob)
-	fmt.Println("Running Server on ", os.Getenv("PORT"))
+	fmt.Println("Running Server on ", 9090)
 	router.Run()
 }

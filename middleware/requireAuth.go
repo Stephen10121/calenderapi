@@ -3,7 +3,6 @@ package middleware
 import (
 	"fmt"
 	"net/http"
-	"os"
 	"strings"
 	"time"
 
@@ -11,6 +10,7 @@ import (
 	"github.com/golang-jwt/jwt/v4"
 	"github.com/stephen10121/calenderapi/initializers"
 	"github.com/stephen10121/calenderapi/models"
+	"github.com/stephen10121/calenderapi/variables"
 )
 
 func RequireAuth(c *gin.Context) {
@@ -39,7 +39,7 @@ func RequireAuth(c *gin.Context) {
 		}
 
 		// hmacSampleSecret is a []byte containing your secret, e.g. []byte("my_secret_key")
-		return []byte(os.Getenv("SECRET")), nil
+		return []byte(variables.Secret()), nil
 	})
 
 	if err != nil {
