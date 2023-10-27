@@ -7,6 +7,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/stephen10121/calenderapi/functions"
+	"github.com/stephen10121/calenderapi/helpers"
 	"github.com/stephen10121/calenderapi/initializers"
 	"github.com/stephen10121/calenderapi/models"
 )
@@ -45,8 +46,17 @@ func GetGroupInfo(c *gin.Context) {
 		})
 		return
 	}
-	var groupParticapants []uint
-	json.Unmarshal([]byte(group.Particapants), &groupParticapants)
+
+	groupParticapants, err := helpers.UnmarshalGroupParticapants(group.Particapants)
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "Something went wrong.",
+		})
+		fmt.Println(err)
+		return
+	}
+
 	if functions.UintContains(groupParticapants, user.ID) != true {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"error": "User not in group.",

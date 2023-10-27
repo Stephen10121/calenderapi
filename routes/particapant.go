@@ -8,6 +8,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/stephen10121/calenderapi/functions"
+	"github.com/stephen10121/calenderapi/helpers"
 	"github.com/stephen10121/calenderapi/initializers"
 	"github.com/stephen10121/calenderapi/models"
 	"github.com/stephen10121/calenderapi/realtime"
@@ -182,8 +183,16 @@ func KickParticapant(c *gin.Context) {
 		return
 	}
 
-	var groupParticapants []uint
-	json.Unmarshal([]byte(group.Particapants), &groupParticapants)
+	groupParticapants, err := helpers.UnmarshalGroupParticapants(group.Particapants)
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "Something went wrong.",
+		})
+		fmt.Println(err)
+		return
+	}
+
 	if functions.UintContains(groupParticapants, userPart.ID) != true {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"error": "User not part of group anymore.",

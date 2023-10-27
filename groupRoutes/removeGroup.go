@@ -51,8 +51,16 @@ func RemoveGroup(c *gin.Context) {
 		return
 	}
 
-	var groupParticapants []uint
-	json.Unmarshal([]byte(group.Particapants), &groupParticapants)
+	groupParticapants, err := helpers.UnmarshalGroupParticapants(group.Particapants)
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "Something went wrong.",
+		})
+		fmt.Println(err)
+		return
+	}
+
 	for _, s := range groupParticapants {
 		var userInPart models.User
 		initializers.DB.First(&userInPart, "id = ?", s)

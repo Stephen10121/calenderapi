@@ -2,10 +2,12 @@ package grouproutes
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
 	"github.com/stephen10121/calenderapi/functions"
+	"github.com/stephen10121/calenderapi/helpers"
 	"github.com/stephen10121/calenderapi/initializers"
 	"github.com/stephen10121/calenderapi/models"
 	"github.com/stephen10121/calenderapi/realtime"
@@ -62,8 +64,16 @@ func LeaveGroup(c *gin.Context) {
 			return
 		}
 
-		var groupParticapants []uint
-		json.Unmarshal([]byte(group.Particapants), &groupParticapants)
+		groupParticapants, err := helpers.UnmarshalGroupParticapants(group.Particapants)
+
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"error": "Something went wrong.",
+			})
+			fmt.Println(err)
+			return
+		}
+
 		if functions.UintContains(groupParticapants, userInPart.ID) != true {
 			c.JSON(http.StatusBadRequest, gin.H{
 				"error": "User not part of the group.",
@@ -126,8 +136,17 @@ func LeaveGroup(c *gin.Context) {
 	initializers.DB.Model(&models.User{}).Where("id = ?", user.ID).Update("groups", groupsJson)
 
 	var particapants []uint
-	var groupParticapants []uint
-	json.Unmarshal([]byte(group.Particapants), &groupParticapants)
+
+	groupParticapants, err := helpers.UnmarshalGroupParticapants(group.Particapants)
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "Something went wrong.",
+		})
+		fmt.Println(err)
+		return
+	}
+
 	for _, s := range groupParticapants {
 		if s != user.ID {
 			particapants = append(particapants, s)

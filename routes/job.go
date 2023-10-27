@@ -9,6 +9,7 @@ import (
 	"github.com/gin-gonic/gin"
 	expo "github.com/oliveroneill/exponent-server-sdk-golang/sdk"
 	"github.com/stephen10121/calenderapi/functions"
+	"github.com/stephen10121/calenderapi/helpers"
 	"github.com/stephen10121/calenderapi/initializers"
 	"github.com/stephen10121/calenderapi/models"
 	"github.com/stephen10121/calenderapi/realtime"
@@ -86,8 +87,15 @@ func AddJob(c *gin.Context) {
 	user2, _ := c.Get("user")
 	user := user2.(models.User)
 
-	var groupParticapants []uint
-	json.Unmarshal([]byte(group.Particapants), &groupParticapants)
+	groupParticapants, err := helpers.UnmarshalGroupParticapants(group.Particapants)
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "Something went wrong.",
+		})
+		fmt.Println(err)
+		return
+	}
 
 	if user.ID != group.Owner {
 		if functions.UintContains(groupParticapants, user.ID) != true || group.OthersCanAdd != true {
@@ -202,8 +210,16 @@ func GetJobs(c *gin.Context) {
 	user2, _ := c.Get("user")
 	user := user2.(models.User)
 
-	var groupParticapants []uint
-	json.Unmarshal([]byte(group.Particapants), &groupParticapants)
+	groupParticapants, err := helpers.UnmarshalGroupParticapants(group.Particapants)
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "Something went wrong.",
+		})
+		fmt.Println(err)
+		return
+	}
+
 	if functions.UintContains(groupParticapants, user.ID) != true {
 		c.JSON(http.StatusMethodNotAllowed, gin.H{
 			"error": "User not part of group",
@@ -333,8 +349,16 @@ func JobInfo(c *gin.Context) {
 	user2, _ := c.Get("user")
 	user := user2.(models.User)
 
-	var groupParticapants []uint
-	json.Unmarshal([]byte(group.Particapants), &groupParticapants)
+	groupParticapants, err := helpers.UnmarshalGroupParticapants(group.Particapants)
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "Something went wrong.",
+		})
+		fmt.Println(err)
+		return
+	}
+
 	if functions.UintContains(groupParticapants, user.ID) != true {
 		c.JSON(http.StatusMethodNotAllowed, gin.H{
 			"error": "User not part of group",
@@ -381,8 +405,16 @@ func AcceptJob(c *gin.Context) {
 	user2, _ := c.Get("user")
 	user := user2.(models.User)
 
-	var groupParticapants []uint
-	json.Unmarshal([]byte(group.Particapants), &groupParticapants)
+	groupParticapants, err := helpers.UnmarshalGroupParticapants(group.Particapants)
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "Something went wrong.",
+		})
+		fmt.Println(err)
+		return
+	}
+
 	if functions.UintContains(groupParticapants, user.ID) != true {
 		c.JSON(http.StatusMethodNotAllowed, gin.H{
 			"error": "User not part of group",

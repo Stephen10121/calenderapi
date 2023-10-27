@@ -52,8 +52,16 @@ func CancelRequest(c *gin.Context) {
 		return
 	}
 
-	var groupParticapants []uint
-	json.Unmarshal([]byte(group.PendingParticapants), &groupParticapants)
+	groupParticapants, err := helpers.UnmarshalGroupParticapants(group.Particapants)
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "Something went wrong.",
+		})
+		fmt.Println(err)
+		return
+	}
+
 	if functions.UintContains(groupParticapants, user.ID) != true {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"error": "Your not pending.",
